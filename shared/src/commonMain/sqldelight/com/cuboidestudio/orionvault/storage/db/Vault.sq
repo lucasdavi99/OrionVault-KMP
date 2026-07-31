@@ -1,0 +1,65 @@
+CREATE TABLE Folder (
+  id TEXT NOT NULL PRIMARY KEY,
+  parentId TEXT,
+  name TEXT NOT NULL,
+  createdAt INTEGER NOT NULL,
+  updatedAt INTEGER NOT NULL
+);
+
+CREATE INDEX Folder_parentId ON Folder(parentId);
+
+CREATE TABLE Item (
+  id TEXT NOT NULL PRIMARY KEY,
+  folderId TEXT NOT NULL,
+  title TEXT NOT NULL,
+  usernameCipher TEXT,
+  passwordCipher TEXT NOT NULL,
+  urlCipher TEXT,
+  notesCipher TEXT,
+  createdAt INTEGER NOT NULL,
+  updatedAt INTEGER NOT NULL,
+  version INTEGER NOT NULL
+);
+
+CREATE INDEX Item_folderId ON Item(folderId);
+
+-- Folder queries
+
+selectFoldersByParent:
+SELECT * FROM Folder WHERE (parentId IS NULL AND :parentId IS NULL) OR parentId = :parentId ORDER BY name COLLATE NOCASE;
+
+selectFolderById:
+SELECT * FROM Folder WHERE id = ?;
+
+countFolderChildren:
+SELECT COUNT(*) FROM Folder WHERE parentId = ?;
+
+insertFolder:
+INSERT INTO Folder (id, parentId, name, createdAt, updatedAt)
+VALUES (?, ?, ?, ?, ?);
+
+renameFolder:
+UPDATE Folder SET name = ?, updatedAt = ? WHERE id = ?;
+
+deleteFolder:
+DELETE FROM Folder WHERE id = ?;
+
+-- Item queries
+
+selectItemsByFolder:
+SELECT * FROM Item WHERE folderId = ? ORDER BY title COLLATE NOCASE;
+
+selectItemById:
+SELECT * FROM Item WHERE id = ?;
+
+insertItem:
+INSERT INTO Item (id, folderId, title, usernameCipher, passwordCipher, urlCipher, notesCipher, createdAt, updatedAt, version)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+updateItem:
+UPDATE Item
+SET title = ?, usernameCipher = ?, passwordCipher = ?, urlCipher = ?, notesCipher = ?, updatedAt = ?, version = ?
+WHERE id = ?;
+
+deleteItem:
+DELETE FROM Item WHERE id = ?;

@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OrionVault | Secure Digital Asset Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#4edea3",
+                        "surface-bright": "#31394d",
+                        "primary-fixed": "#e1e0ff",
+                        "error-container": "#93000a",
+                        "surface-container-high": "#222a3d",
+                        "on-error": "#690005",
+                        "surface-tint": "#c0c1ff",
+                        "secondary": "#4edea3",
+                        "surface-container": "#171f33",
+                        "primary-fixed-dim": "#c0c1ff",
+                        "secondary-fixed": "#6ffbbe",
+                        "surface-variant": "#2d3449",
+                        "on-primary-fixed-variant": "#2f2ebe",
+                        "on-secondary": "#003824",
+                        "outline": "#908fa0",
+                        "on-background": "#dae2fd",
+                        "on-surface-variant": "#c7c4d7",
+                        "surface-container-lowest": "#060e20",
+                        "on-primary-fixed": "#07006c",
+                        "on-secondary-fixed-variant": "#005236",
+                        "primary-container": "#8083ff",
+                        "secondary-container": "#00a572",
+                        "inverse-surface": "#dae2fd",
+                        "surface-container-highest": "#2d3449",
+                        "on-secondary-container": "#00311f",
+                        "primary": "#c0c1ff",
+                        "error": "#ffb4ab",
+                        "surface": "#0b1326",
+                        "on-surface": "#dae2fd",
+                        "tertiary-container": "#d97721",
+                        "on-tertiary-container": "#452000",
+                        "on-primary": "#1000a9",
+                        "tertiary-fixed-dim": "#ffb783",
+                        "outline-variant": "#464554",
+                        "on-tertiary": "#4f2500",
+                        "on-error-container": "#ffdad6",
+                        "background": "#0b1326",
+                        "on-secondary-fixed": "#002113",
+                        "on-primary-container": "#0d0096",
+                        "tertiary-fixed": "#ffdcc5",
+                        "tertiary": "#ffb783",
+                        "surface-container-low": "#131b2e",
+                        "inverse-primary": "#494bd6",
+                        "surface-dim": "#0b1326",
+                        "inverse-on-surface": "#283044",
+                        "on-tertiary-fixed-variant": "#703700",
+                        "on-tertiary-fixed": "#301400"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "xs": "8px",
+                        "sm": "12px",
+                        "xl": "32px",
+                        "lg": "24px",
+                        "margin-desktop": "40px",
+                        "margin-mobile": "16px",
+                        "base": "4px",
+                        "gutter": "20px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "code-md": ["JetBrains Mono"],
+                        "label-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "code-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0b1326;
+            color: #dae2fd;
+            -webkit-font-smoothing: antialiased;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+        .vault-scrollbar::-webkit-scrollbar { width: 4px; }
+        .vault-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .vault-scrollbar::-webkit-scrollbar-thumb { background: #464554; border-radius: 10px; }
+        .vault-scrollbar::-webkit-scrollbar-thumb:hover { background: #908fa0; }
+        
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+
+        .active-glow {
+            box-shadow: 0 0 15px rgba(192, 193, 255, 0.15);
+        }
+    </style>
+</head>
+<body class="h-screen overflow-hidden font-body-md text-body-md flex flex-col">
+<!-- Top Navigation Anchor -->
+<header class="flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 w-full top-0 sticky bg-surface border-b border-outline-variant z-50">
+<div class="flex items-center gap-4">
+<span class="font-headline-md text-headline-md font-bold text-primary">OrionVault</span>
+<div class="hidden md:flex items-center bg-surface-container-high px-3 py-1.5 rounded-lg border border-outline-variant gap-2 ml-4 group transition-all duration-200 hover:border-primary">
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-md w-64 placeholder:text-outline" placeholder="Search Vault..." type="text"/>
+<span class="text-[10px] font-bold text-outline border border-outline-variant rounded px-1 group-hover:border-primary group-hover:text-primary">⌘K</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined p-2 hover:bg-surface-variant/50 rounded-full transition-colors">notifications</button>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-primary/30">
+<img class="w-full h-full object-cover" data-alt="A professional close-up studio portrait of a high-tech software engineer, cinematic low-key lighting with subtle blue and indigo rim light. The individual has a focused, calm expression, set against a dark midnight-gray background. Deep purple and emerald green highlights reflect off the skin, maintaining a sleek, corporate-cyberpunk aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBahm1JD4EbWC2E8ERImXA_Z5WJ1Qd1Lzio1_p8QjJK0_tGYI5oVd84tsr6bsM3HzUh2NQZKn2rDSvtCVdV_l_WPBOWNEp9-nVeFhkYJodPmi_wlNFAr72tjZvfiPk6dXzERQIZ-5ThAKgqhvNHTTD84gU_DQT7LeIkjO1OUrdq2g96JbceYLLaKLV83t8nWytOgnG45tFqRSwm0b_DkHuH9tIrj1r1SS1pOERyIhy8-FW2Cu4JFQs5"/>
+</div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- Sidebar Navigation Drawer -->
+<aside class="hidden md:flex flex-col h-full w-64 bg-surface-container-low border-r border-outline-variant py-md space-y-2 z-40">
+<nav class="flex-1 space-y-1">
+<div class="px-4 py-2 flex items-center gap-3 bg-primary-container text-on-primary-container rounded-r-full font-bold cursor-pointer active:opacity-80 transition-all">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-label-sm text-label-sm">All Items</span>
+</div>
+<div class="px-4 py-2 flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/30 transition-all cursor-pointer">
+<span class="material-symbols-outlined">star</span>
+<span class="font-label-sm text-label-sm">Favorites</span>
+</div>
+<div class="pt-4 px-4">
+<span class="text-[10px] font-bold uppercase tracking-wider text-outline">Folders</span>
+</div>
+<div class="space-y-1 mt-2">
+<div class="px-4 py-1.5 flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/30 cursor-pointer transition-all">
+<span class="material-symbols-outlined text-[20px]">folder_open</span>
+<span class="font-label-sm text-label-sm">Work</span>
+</div>
+<div class="pl-8 py-1.5 flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/30 cursor-pointer transition-all">
+<span class="material-symbols-outlined text-[18px]">subdirectory_arrow_right</span>
+<span class="material-symbols-outlined text-[20px]">dns</span>
+<span class="font-label-sm text-label-sm">Servers</span>
+</div>
+<div class="pl-12 py-1.5 flex items-center gap-3 bg-surface-variant/20 text-primary border-r-2 border-primary cursor-pointer transition-all">
+<span class="material-symbols-outlined text-[20px]">database</span>
+<span class="font-label-sm text-label-sm">DB</span>
+</div>
+</div>
+<div class="px-4 py-2 flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/30 transition-all cursor-pointer mt-auto">
+<span class="material-symbols-outlined">delete</span>
+<span class="font-label-sm text-label-sm">Trash</span>
+</div>
+<div class="px-4 py-2 flex items-center gap-3 text-on-surface-variant hover:bg-surface-variant/30 transition-all cursor-pointer">
+<span class="material-symbols-outlined">security</span>
+<span class="font-label-sm text-label-sm">Security Audit</span>
+</div>
+</nav>
+<div class="px-4 pt-4 border-t border-outline-variant/30">
+<div class="p-3 glass-panel rounded-xl flex items-center gap-3">
+<div class="w-10 h-10 bg-secondary/20 flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-on-surface leading-none">Vault Shield</span>
+<span class="text-[10px] text-secondary font-bold">ACTIVE</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Middle Column: Vault Item List -->
+<main class="flex-1 flex flex-col bg-surface-dim border-r border-outline-variant overflow-hidden">
+<div class="p-6 border-b border-outline-variant flex justify-between items-center">
+<h2 class="font-headline-md text-headline-md text-on-surface flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">database</span>
+                    DB
+                </h2>
+<button class="bg-primary hover:bg-primary-container text-on-primary px-4 py-2 rounded-lg font-bold transition-all flex items-center gap-2 scale-100 active:scale-95 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">add</span>
+                    New Item
+                </button>
+</div>
+<div class="flex-1 overflow-y-auto vault-scrollbar p-2 space-y-1">
+<!-- Item Card 1 (Active) -->
+<div class="p-4 rounded-xl glass-panel border-l-4 border-l-primary flex items-center gap-4 cursor-pointer active-glow transition-all">
+<div class="w-12 h-12 bg-[#24292e] rounded-lg flex items-center justify-center border border-outline-variant">
+<img class="w-8 h-8" data-alt="The GitHub Octocat logo rendered as a high-fidelity 3D metallic icon, matte black finish with polished silver edges, centered on a deep slate background. The lighting is focused and cinematic, creating a premium software product feel within a dark mode interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBLHGPe-9wkuiRy4xqVJVY1EEIN0lLcREgy5n4-1qnBm1Caqn_36F4vlqExEBeBW2q58C1XuXNAm1kIzZ-nHac0mmExlRtg7Qolh3xXs5on924F4s4p3LCsZ1Kkpyk9j5lGKWEcbObIhxB3coXxzKrP2MMkLo8thg53NWTm7OQ9rU4lcIYJebA5SJ2Gxq08UvMCoN6kBvAx6Vhh7lfHLMJ5zdV0308sgh75x12CK-NXkbhep2tTww8j"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<h3 class="font-bold text-on-surface">GitHub</h3>
+<span class="text-[10px] bg-secondary-container/30 text-secondary px-2 py-0.5 rounded-full font-bold">SECURE</span>
+</div>
+<p class="text-on-surface-variant text-[12px]">@orion_lead</p>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+<!-- Item Card 2 -->
+<div class="p-4 rounded-xl hover:bg-surface-variant/20 border border-transparent hover:border-outline-variant/30 flex items-center gap-4 cursor-pointer transition-all">
+<div class="w-12 h-12 bg-[#FF9900] rounded-lg flex items-center justify-center border border-outline-variant">
+<img class="w-8 h-8" data-alt="The AWS logo in bright orange and white, stylized as a floating translucent glass icon with refractive depth. The background is a dark obsidian texture, with subtle orange light spills illuminating the edges of the icon. Professional digital logo representation for a high-security vault application." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfBjVXSFxxY92QhxP9QTvh6N5NTC8a9ge4F5-0TqWV8hb5oB7qR5Qx9touIqkrdVEMtpMKaJTrT4LK4-RfG7nT_Yjg4tpzk80HlAqxB7wStvp5yHtE1PcS_6WURLiMurTVaqFM2rkwo28inrp3kk2Qff7IfY6XrzmuzlvWVPMGc4b2gqgFl4F7TG4QEflSIJJGKpxn8TVM_mw3dzRfns_1hq3uVwGmjgN9RkG4QVpE-mgx0ap1-SNG"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<h3 class="font-bold text-on-surface">AWS Console</h3>
+<span class="text-[10px] bg-outline-variant/30 text-outline px-2 py-0.5 rounded-full font-bold">2FA ON</span>
+</div>
+<p class="text-on-surface-variant text-[12px]">admin@orionvault.io</p>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+<!-- Item Card 3 -->
+<div class="p-4 rounded-xl hover:bg-surface-variant/20 border border-transparent hover:border-outline-variant/30 flex items-center gap-4 cursor-pointer transition-all">
+<div class="w-12 h-12 bg-[#4A154B] rounded-lg flex items-center justify-center border border-outline-variant">
+<img class="w-8 h-8" data-alt="The Slack logo reimagined as a futuristic holographic 3D element, with vibrant neon colors glowing against a dark velvet background. The style is minimalist and high-tech, fitting for a premium security dashboard with glassmorphism effects." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSpsW5qpqZ7h5gouM0OYeumVISujoBAxxJUMRn9cnnedFNuumCfO1RrODVyGzxIUn2pxpOw5dlh-Lndxhz8UZ3MTVG0_FKyEmgdJgG-KeMqMmt7ZoYkJcowCIYKeEkt94ygMvVlves_LKTf92_mkECUlqAWhN0QZ2NeWThFrFr6L_BB8a-7BsbS8pXRUxgtbbDL0otlLjLaYlJh2EwDRYPeddcf5qxgm5YcHn5u5he-WBV4-Y9MzcB"/>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start">
+<h3 class="font-bold text-on-surface">Slack Workspace</h3>
+<span class="text-[10px] bg-error-container/20 text-error px-2 py-0.5 rounded-full font-bold">WEAK PASSWORD</span>
+</div>
+<p class="text-on-surface-variant text-[12px]">team_lead_hq</p>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+</div>
+</main>
+<!-- Right Column: Details/Editor -->
+<section class="hidden lg:flex flex-[1.5] flex-col bg-surface overflow-hidden relative">
+<!-- Background Atmospheric Effect -->
+
+<div class="flex-1 overflow-y-auto vault-scrollbar p-xl space-y-xl z-10">
+<!-- Detail Header -->
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-6">
+<div class="w-20 h-20 rounded-2xl glass-panel flex items-center justify-center p-4 border-primary/20 border-2">
+<img class="w-full h-full object-contain" data-alt="High-resolution close-up of a GitHub brand icon, metallic silver texture with soft glowing indigo edges. The logo is centered and slightly elevated above a dark, glass-like surface with subtle light reflections. Modern corporate security UI style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAixhjo86QE6wOKKAontHGcwwc2oJNdEe18lm2dddu4qMXliceINXE5oSVNNskPdr_d_oFg5RXjdAFMZlN-e7f9sBPB1ucJ2Cejit4Cd3iBi9gp1IeQCwBJh9Ei0bWqCthq8z0PooBQfZqNUWoLmS3nAx7n-XlO0RPxDy_kBRuDKgzw5pObWIdNWuq8Q_lREmLfu2iZtVGSaavarJeKZRmXRvhQUN7jrIdg166se9XucHaHAhbIwOG8"/>
+</div>
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface">GitHub</h1>
+<div class="flex items-center gap-3 mt-1">
+<span class="text-secondary font-bold text-[12px] flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                                    Identity Verified
+                                </span>
+<span class="text-outline text-[12px]">• Last updated 2 days ago</span>
+</div>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="p-2 glass-panel rounded-lg hover:text-primary transition-colors material-symbols-outlined">star</button>
+<button class="p-2 glass-panel rounded-lg hover:text-error transition-colors material-symbols-outlined">delete</button>
+</div>
+</div>
+<!-- Detail Fields -->
+<div class="grid grid-cols-1 gap-6">
+<!-- Username Field -->
+<div class="space-y-2">
+<label class="font-label-sm text-outline uppercase tracking-wider">Username</label>
+<div class="flex gap-2">
+<div class="flex-1 bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 flex items-center justify-between group focus-within:border-primary transition-all">
+<span class="font-body-lg text-on-surface">orion_lead</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary cursor-pointer transition-colors">person</span>
+</div>
+<button class="px-4 glass-panel rounded-xl flex items-center justify-center hover:bg-primary/10 transition-all text-primary border-primary/30" onclick="copyFeedback(this)">
+<span class="material-symbols-outlined">content_copy</span>
+</button>
+</div>
+</div>
+<!-- Password Field -->
+<div class="space-y-2">
+<label class="font-label-sm text-outline uppercase tracking-wider">Password</label>
+<div class="flex gap-2">
+<div class="flex-1 bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 flex items-center justify-between group focus-within:border-primary transition-all">
+<div class="flex gap-1 items-center">
+<span class="font-code-md text-headline-md tracking-[0.3em] leading-none text-primary/80" id="password-field">••••••••••••</span>
+</div>
+<button class="material-symbols-outlined text-outline hover:text-primary cursor-pointer transition-colors" onclick="togglePassword()">visibility</button>
+</div>
+<button class="px-4 glass-panel rounded-xl flex items-center justify-center hover:bg-primary/10 transition-all text-primary border-primary/30" onclick="copyFeedback(this)">
+<span class="material-symbols-outlined">content_copy</span>
+</button>
+</div>
+<div class="h-1.5 w-full bg-surface-container rounded-full overflow-hidden mt-2">
+<div class="h-full w-[85%] bg-secondary shadow-[0_0_8px_rgba(78,222,163,0.5)]"></div>
+</div>
+<p class="text-[10px] text-secondary font-bold">STRENGTH: EXCEPTIONAL</p>
+</div>
+<!-- URL Field -->
+<div class="space-y-2">
+<label class="font-label-sm text-outline uppercase tracking-wider">Website URL</label>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-3 flex items-center justify-between group focus-within:border-primary transition-all">
+<span class="font-body-md text-on-surface">https://github.com/login</span>
+<span class="material-symbols-outlined text-primary text-[20px] cursor-pointer">open_in_new</span>
+</div>
+</div>
+<!-- Notes Field -->
+<div class="space-y-2">
+<label class="font-label-sm text-outline uppercase tracking-wider">Notes</label>
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl px-4 py-4 min-h-[100px] flex items-start">
+<p class="text-body-md text-on-surface-variant leading-relaxed">
+                                Primary engineering account. Access granted for production deployments. Linked to physical security key (YubiKey 5C).
+                            </p>
+</div>
+</div>
+</div>
+<!-- Primary Action Cluster -->
+<div class="pt-8 flex gap-4">
+<button class="flex-1 bg-primary text-on-primary py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-primary-fixed transition-all scale-100 active:scale-95 shadow-xl shadow-primary/20">
+<span class="material-symbols-outlined">edit</span>
+                        Edit Record
+                    </button>
+<button class="flex-1 glass-panel text-on-surface py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-surface-variant/50 transition-all scale-100 active:scale-95">
+<span class="material-symbols-outlined">share</span>
+                        Secure Share
+                    </button>
+</div>
+</div>
+<!-- Detailed Audit Footer -->
+<div class="p-6 border-t border-outline-variant glass-panel mt-auto z-10 flex justify-between items-center">
+<div class="flex items-center gap-4">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full border border-background bg-primary-container"></div>
+<div class="w-6 h-6 rounded-full border border-background bg-secondary-container"></div>
+<div class="w-6 h-6 rounded-full border border-background bg-surface-variant"></div>
+</div>
+<span class="text-[12px] text-outline">3 members with access</span>
+</div>
+<div class="text-[12px] font-code-md text-outline">
+                    ID: VAULT_77_GH_09
+                </div>
+</div>
+</section>
+</div>
+<!-- Mobile Navigation Shell (Suppressed on Desktop) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 px-2 pb-safe md:hidden bg-surface-container shadow-sm border-t border-outline-variant">
+<div class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-4 py-1">
+<span class="material-symbols-outlined">lock_open</span>
+<span class="font-label-sm text-label-sm">Vault</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">enhanced_encryption</span>
+<span class="font-label-sm text-label-sm">Generator</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-sm text-label-sm">Settings</span>
+</div>
+</nav>
+<script>
+        // Micro-interactions
+        function togglePassword() {
+            const passField = document.getElementById('password-field');
+            const isDots = passField.innerText.includes('•');
+            if (isDots) {
+                passField.innerText = 'gH7!kL9_zP2q$v';
+                passField.classList.remove('tracking-[0.3em]');
+                passField.classList.add('tracking-wider');
+            } else {
+                passField.innerText = '••••••••••••';
+                passField.classList.add('tracking-[0.3em]');
+                passField.classList.remove('tracking-wider');
+            }
+        }
+
+        function copyFeedback(btn) {
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<span class="material-symbols-outlined text-secondary">check</span>';
+            btn.classList.add('border-secondary/50', 'bg-secondary/10');
+            
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.classList.remove('border-secondary/50', 'bg-secondary/10');
+            }, 2000);
+        }
+
+        // Search shortcut visual feedback
+        document.addEventListener('keydown', function(e) {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                const searchInput = document.querySelector('input[placeholder="Search Vault..."]');
+                searchInput.focus();
+                searchInput.parentElement.classList.add('ring-2', 'ring-primary/50');
+                setTimeout(() => searchInput.parentElement.classList.remove('ring-2', 'ring-primary/50'), 500);
+            }
+        });
+    </script>
+</body></html>

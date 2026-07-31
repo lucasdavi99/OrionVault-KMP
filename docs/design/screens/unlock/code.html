@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>OrionVault - Secure Unlock</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#4edea3",
+                        "surface-bright": "#31394d",
+                        "primary-fixed": "#e1e0ff",
+                        "error-container": "#93000a",
+                        "surface-container-high": "#222a3d",
+                        "on-error": "#690005",
+                        "surface-tint": "#c0c1ff",
+                        "secondary": "#4edea3",
+                        "surface-container": "#171f33",
+                        "primary-fixed-dim": "#c0c1ff",
+                        "secondary-fixed": "#6ffbbe",
+                        "surface-variant": "#2d3449",
+                        "on-primary-fixed-variant": "#2f2ebe",
+                        "on-secondary": "#003824",
+                        "outline": "#908fa0",
+                        "on-background": "#dae2fd",
+                        "on-surface-variant": "#c7c4d7",
+                        "surface-container-lowest": "#060e20",
+                        "on-primary-fixed": "#07006c",
+                        "on-secondary-fixed-variant": "#005236",
+                        "primary-container": "#8083ff",
+                        "secondary-container": "#00a572",
+                        "inverse-surface": "#dae2fd",
+                        "surface-container-highest": "#2d3449",
+                        "on-secondary-container": "#00311f",
+                        "primary": "#c0c1ff",
+                        "error": "#ffb4ab",
+                        "surface": "#0b1326",
+                        "on-surface": "#dae2fd",
+                        "tertiary-container": "#d97721",
+                        "on-tertiary-container": "#452000",
+                        "on-primary": "#1000a9",
+                        "tertiary-fixed-dim": "#ffb783",
+                        "outline-variant": "#464554",
+                        "on-tertiary": "#4f2500",
+                        "on-error-container": "#ffdad6",
+                        "background": "#0b1326",
+                        "on-secondary-fixed": "#002113",
+                        "on-primary-container": "#0d0096",
+                        "tertiary-fixed": "#ffdcc5",
+                        "tertiary": "#ffb783",
+                        "surface-container-low": "#131b2e",
+                        "inverse-primary": "#494bd6",
+                        "surface-dim": "#0b1326",
+                        "inverse-on-surface": "#283044",
+                        "on-tertiary-fixed-variant": "#703700",
+                        "on-tertiary-fixed": "#301400"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "xs": "8px",
+                        "sm": "12px",
+                        "xl": "32px",
+                        "lg": "24px",
+                        "margin-desktop": "40px",
+                        "margin-mobile": "16px",
+                        "base": "4px",
+                        "gutter": "20px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "code-md": ["JetBrains Mono"],
+                        "label-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "code-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
+        }
+        .inner-glow-focus:focus-within {
+            box-shadow: 0 0 0 2px #c0c1ff44, inset 0 0 8px #c0c1ff22;
+        }
+        @keyframes pulse-scan {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+        .pulse-animation {
+            animation: pulse-scan 3s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col overflow-hidden">
+<!-- Atmosphere / Background Effect -->
+<div class="fixed inset-0 pointer-events-none z-0">
+<div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 rounded-full blur-[120px]"></div>
+<div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-secondary/5 rounded-full blur-[150px]"></div>
+</div>
+<!-- Main Content Canvas -->
+<main class="relative z-10 flex-1 flex flex-col items-center justify-center px-margin-mobile">
+<div class="w-full max-w-sm flex flex-col items-center">
+<!-- Vault Logo -->
+<div class="mb-xl transition-transform duration-700 hover:scale-105">
+<img alt="OrionVault Logo" class="w-24 h-24 object-contain filter drop-shadow-[0_0_15px_rgba(192,193,255,0.3)]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBATI0KPe5svJ9vj8y5JggGLUX6ah95Ntdqu0-bB_6HCRdzQUy9Hj4AgLGU8vu7xgyIOqnbLTH2oXLvA1co1kmLOaFB_NC-dCTYM_foH4lHQBCyv74POKXDAcGjde7-iFqTxmcaLuQk4Su7tAQ5PoIKHjg_xlpLXoZt4EdIHxE18YoVYSmCcDm89P5agz-uquMjFWnK70ryi8kbR8uQRZOwPdSr8QNBrdYQXoKdcqkEWK6hhnEIHqMH"/>
+</div>
+<!-- Headline -->
+<h1 class="font-headline-md text-headline-md text-on-surface mb-lg tracking-tight">
+                Vault Locked
+            </h1>
+<!-- Secure Input Section -->
+<div class="w-full space-y-md">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-md flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-outline">lock</span>
+</div>
+<input autocomplete="current-password" class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg py-4 pl-12 pr-md text-on-surface placeholder:text-outline/60 font-code-md focus:outline-none focus:border-primary transition-all inner-glow-focus" placeholder="Master Password" type="password"/>
+</div>
+<!-- Error State -->
+<div class="flex items-center space-x-xs px-xs">
+<span class="material-symbols-outlined text-error text-[18px]">error</span>
+<p class="text-error font-label-sm text-label-sm">Incorrect master password</p>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="w-full mt-xl space-y-md">
+<button class="w-full bg-primary py-4 rounded-lg text-on-primary font-headline-md text-[16px] hover:opacity-90 active:scale-[0.98] transition-all shadow-lg shadow-primary/20">
+                    Unlock Vault
+                </button>
+<div class="flex items-center justify-center py-md">
+<div class="h-[1px] flex-1 bg-outline-variant"></div>
+<span class="px-md font-label-sm text-outline text-[10px] uppercase tracking-widest">or biometric</span>
+<div class="h-[1px] flex-1 bg-outline-variant"></div>
+</div>
+<button class="w-full glass-panel py-4 rounded-lg flex items-center justify-center space-x-md text-on-surface font-body-lg hover:bg-surface-variant transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined text-secondary-fixed-dim pulse-animation" style="font-variation-settings: 'opsz' 32;">drafts</span>
+<span class="font-label-sm text-label-sm">Unlock with Face ID</span>
+</button>
+</div>
+<!-- Footer Link -->
+<footer class="mt-xl text-center">
+<a class="text-primary font-label-sm text-label-sm hover:underline underline-offset-4 opacity-80 hover:opacity-100 transition-opacity" href="#">
+                    Forgot Secret Key?
+                </a>
+</footer>
+</div>
+</main>
+<!-- Biometric Scanning UI (Optional Micro-interaction hidden by default) -->
+<div class="fixed inset-0 z-50 flex items-center justify-center glass-panel opacity-0 pointer-events-none transition-opacity duration-500" id="biometric-overlay">
+<div class="text-center">
+<div class="relative w-32 h-32 mx-auto mb-lg">
+<div class="absolute inset-0 border-2 border-secondary rounded-full animate-ping opacity-20"></div>
+<span class="material-symbols-outlined text-secondary text-[80px]" style="font-variation-settings: 'FILL' 0;">drafts</span>
+</div>
+<p class="text-on-surface font-headline-md">Authenticating...</p>
+</div>
+</div>
+<script>
+        // Micro-interactions for demonstration
+        const biometricBtn = document.querySelectorAll('button')[1];
+        const overlay = document.getElementById('biometric-overlay');
+
+        if (biometricBtn) {
+            biometricBtn.addEventListener('click', () => {
+                overlay.classList.remove('opacity-0', 'pointer-events-none');
+                setTimeout(() => {
+                    overlay.classList.add('opacity-0', 'pointer-events-none');
+                }, 2000);
+            });
+        }
+
+        // Handle focus states for input
+        const passwordInput = document.querySelector('input[type="password"]');
+        passwordInput.addEventListener('focus', () => {
+            // Remove error message on new input attempt if desired
+            // const errorMsg = document.querySelector('.text-error').parentElement;
+            // errorMsg.classList.add('opacity-0');
+        });
+    </script>
+</body></html>

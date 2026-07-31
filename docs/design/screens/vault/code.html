@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OrionVault - Secure Storage</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed-dim": "#4edea3",
+                    "surface-bright": "#31394d",
+                    "primary-fixed": "#e1e0ff",
+                    "error-container": "#93000a",
+                    "surface-container-high": "#222a3d",
+                    "on-error": "#690005",
+                    "surface-tint": "#c0c1ff",
+                    "secondary": "#4edea3",
+                    "surface-container": "#171f33",
+                    "primary-fixed-dim": "#c0c1ff",
+                    "secondary-fixed": "#6ffbbe",
+                    "surface-variant": "#2d3449",
+                    "on-primary-fixed-variant": "#2f2ebe",
+                    "on-secondary": "#003824",
+                    "outline": "#908fa0",
+                    "on-background": "#dae2fd",
+                    "on-surface-variant": "#c7c4d7",
+                    "surface-container-lowest": "#060e20",
+                    "on-primary-fixed": "#07006c",
+                    "on-secondary-fixed-variant": "#005236",
+                    "primary-container": "#8083ff",
+                    "secondary-container": "#00a572",
+                    "inverse-surface": "#dae2fd",
+                    "surface-container-highest": "#2d3449",
+                    "on-secondary-container": "#00311f",
+                    "primary": "#c0c1ff",
+                    "error": "#ffb4ab",
+                    "surface": "#0b1326",
+                    "on-surface": "#dae2fd",
+                    "tertiary-container": "#d97721",
+                    "on-tertiary-container": "#452000",
+                    "on-primary": "#1000a9",
+                    "tertiary-fixed-dim": "#ffb783",
+                    "outline-variant": "#464554",
+                    "on-tertiary": "#4f2500",
+                    "on-error-container": "#ffdad6",
+                    "background": "#0b1326",
+                    "on-secondary-fixed": "#002113",
+                    "on-primary-container": "#0d0096",
+                    "tertiary-fixed": "#ffdcc5",
+                    "tertiary": "#ffb783",
+                    "surface-container-low": "#131b2e",
+                    "inverse-primary": "#494bd6",
+                    "surface-dim": "#0b1326",
+                    "inverse-on-surface": "#283044",
+                    "on-tertiary-fixed-variant": "#703700",
+                    "on-tertiary-fixed": "#301400"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "16px",
+                    "xs": "8px",
+                    "sm": "12px",
+                    "xl": "32px",
+                    "lg": "24px",
+                    "margin-desktop": "40px",
+                    "margin-mobile": "16px",
+                    "base": "4px",
+                    "gutter": "20px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Inter"],
+                    "code-md": ["JetBrains Mono"],
+                    "label-sm": ["Inter"],
+                    "body-md": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "body-lg": ["Inter"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "code-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "fontWeight": "600"}],
+                    "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0b1326;
+            color: #dae2fd;
+            -webkit-font-smoothing: antialiased;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .vault-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        .search-container:focus-within {
+            border-color: #c0c1ff;
+            box-shadow: 0 0 0 1px #c0c1ff;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-body-md overflow-x-hidden">
+<!-- Top Navigation Anchor (Shared Component: TopAppBar) -->
+<header class="bg-surface dark:bg-surface text-primary dark:text-primary w-full top-0 sticky border-b border-outline-variant dark:border-outline-variant flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 z-40 transition-colors duration-200 ease-in-out">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-variant border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional high-resolution close-up portrait of a user profile picture, featuring a clean minimalist aesthetic with subtle blue backlighting against a dark midnight gray background. The style is modern corporate with sharp focus and a high-tech sophisticated feel, mirroring the secure OrionVault theme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6FxbRJI_ZY9-QfShLQbzs4U-9NxhZy6m43LVn7dALbDG5Cj-XGUIcgzP9H2j_Qp3v_wJtHuYHtw_cqL3E6yK-qNIHk7dtgNf3pluQQxvSv2bLQlE8lMuDEpS2QOl2PpptjfKvrQv6CGaSMfLRaJL56OKlUSCa95tAxLf82IJwWzvBKKKdAVDC3Wwq-xaGJoOfkLPtMNfsA3-G0OCzQnX3KP_D_Q4T6Ntqc2mJASB6pvzy6PJzokyK"/>
+</div>
+<span class="font-headline-md text-headline-md font-bold text-primary dark:text-primary">OrionVault</span>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-variant/50 transition-colors">
+<span class="material-symbols-outlined" data-icon="search">search</span>
+</button>
+</header>
+<main class="min-h-screen pb-32 px-margin-mobile pt-6">
+<!-- Welcome & Search Area -->
+<section class="mb-8">
+<h1 class="font-headline-lg text-headline-lg mb-4">All Items</h1>
+<div class="search-container flex items-center bg-surface-container-low border border-outline-variant rounded-xl px-4 py-3 transition-all duration-200">
+<span class="material-symbols-outlined text-outline mr-3" data-icon="search">search</span>
+<input class="bg-transparent border-none focus:ring-0 w-full text-on-surface placeholder:text-on-surface-variant/50" placeholder="Search vault items..." type="text"/>
+<span class="material-symbols-outlined text-outline ml-2" data-icon="filter_list">filter_list</span>
+</div>
+</section>
+<!-- Folders Section (Bento Inspired) -->
+<section class="mb-8">
+<div class="flex justify-between items-center mb-4">
+<h2 class="font-label-sm text-label-sm text-on-surface-variant tracking-wider uppercase">Folders</h2>
+<span class="text-primary font-label-sm text-label-sm cursor-pointer">View All</span>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div class="glass-panel p-4 rounded-xl flex flex-col justify-between h-28 active:scale-95 transition-transform cursor-pointer">
+<span class="material-symbols-outlined text-primary" data-icon="folder">folder</span>
+<div>
+<p class="font-bold">Personal</p>
+<p class="text-[10px] text-on-surface-variant uppercase">12 Items</p>
+</div>
+</div>
+<div class="flex flex-col gap-3">
+<div class="glass-panel p-3 rounded-xl flex items-center gap-3 flex-1 active:scale-95 transition-transform cursor-pointer">
+<div class="bg-secondary-container/20 p-2 rounded-lg">
+<span class="material-symbols-outlined text-secondary" data-icon="business_center">business_center</span>
+</div>
+<div class="overflow-hidden">
+<p class="font-bold truncate">Work</p>
+<p class="text-[10px] text-on-surface-variant">Level 2</p>
+</div>
+</div>
+<div class="glass-panel p-3 rounded-xl flex items-center gap-3 flex-1 active:scale-95 transition-transform cursor-pointer">
+<div class="bg-tertiary-container/20 p-2 rounded-lg">
+<span class="material-symbols-outlined text-tertiary" data-icon="account_balance">account_balance</span>
+</div>
+<div class="overflow-hidden">
+<p class="font-bold truncate">Financial</p>
+<p class="text-[10px] text-on-surface-variant">Level 2</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Main Items List -->
+<section>
+<div class="flex justify-between items-center mb-4">
+<h2 class="font-label-sm text-label-sm text-on-surface-variant tracking-wider uppercase">Recent Items</h2>
+</div>
+<div class="vault-grid">
+<!-- Item: Google -->
+<div class="glass-panel p-4 rounded-xl flex items-center justify-between hover:bg-surface-variant/30 transition-all cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center border border-outline-variant">
+<span class="material-symbols-outlined text-primary" data-icon="language">language</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h3 class="font-bold">Google</h3>
+<span class="material-symbols-outlined text-secondary text-[14px]" data-icon="verified_user" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+</div>
+<p class="text-on-surface-variant text-sm">j.smith@gmail.com</p>
+</div>
+</div>
+<button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-variant transition-colors" onclick="this.classList.add('text-secondary'); setTimeout(() =&gt; this.classList.remove('text-secondary'), 1000)">
+<span class="material-symbols-outlined" data-icon="content_copy">content_copy</span>
+</button>
+</div>
+<!-- Item: GitHub -->
+<div class="glass-panel p-4 rounded-xl flex items-center justify-between hover:bg-surface-variant/30 transition-all cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center border border-outline-variant">
+<span class="material-symbols-outlined text-primary" data-icon="terminal">terminal</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h3 class="font-bold">GitHub</h3>
+<span class="material-symbols-outlined text-secondary text-[14px]" data-icon="shield" style="font-variation-settings: 'FILL' 1;">shield</span>
+</div>
+<p class="text-on-surface-variant text-sm">dev_master_99</p>
+</div>
+</div>
+<button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined" data-icon="content_copy">content_copy</span>
+</button>
+</div>
+<!-- Item: Personal Bank -->
+<div class="glass-panel p-4 rounded-xl flex items-center justify-between hover:bg-surface-variant/30 transition-all cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center border border-outline-variant">
+<span class="material-symbols-outlined text-tertiary" data-icon="account_balance">account_balance</span>
+</div>
+<div>
+<div class="flex items-center gap-2">
+<h3 class="font-bold">Personal Bank</h3>
+<span class="material-symbols-outlined text-secondary text-[14px]" data-icon="lock" style="font-variation-settings: 'FILL' 1;">lock</span>
+</div>
+<p class="text-on-surface-variant text-sm">**** 4492</p>
+</div>
+</div>
+<button class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-surface-variant transition-colors">
+<span class="material-symbols-outlined" data-icon="content_copy">content_copy</span>
+</button>
+</div>
+<!-- Atmosphere: Security Prompt (Micro-interaction) -->
+<div class="mt-4 p-4 rounded-xl border border-dashed border-outline-variant bg-surface-container-lowest/50 text-center">
+<span class="material-symbols-outlined text-on-surface-variant/50 mb-2" data-icon="fingerprint">fingerprint</span>
+<p class="text-on-surface-variant text-xs">Biometric verification active for vault access</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Floating Action Button (FAB) -->
+<button class="fixed bottom-24 right-6 w-14 h-14 bg-secondary-container text-on-secondary-container rounded-full shadow-lg flex items-center justify-center active:scale-90 transition-transform z-50">
+<span class="material-symbols-outlined text-3xl" data-icon="add">add</span>
+</button>
+<!-- Navigation Drawer (Desktop SideNav - hidden md:flex) -->
+<nav class="hidden md:flex flex-col h-screen py-md space-y-2 h-full w-64 fixed left-0 top-0 bg-surface-container-low dark:bg-surface-container-low border-r border-outline-variant dark:border-outline-variant z-50">
+<div class="px-6 py-8">
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary">OrionVault</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Secure Storage</p>
+</div>
+<div class="flex-1 space-y-1">
+<div class="mx-2 bg-primary-container dark:bg-primary-container text-on-primary-container dark:text-on-primary-container rounded-r-full font-bold px-4 py-3 flex items-center gap-3 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="inventory_2">inventory_2</span>
+<span class="font-body-md text-body-md">All Items</span>
+</div>
+<div class="mx-2 text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all rounded-r-full px-4 py-3 flex items-center gap-3 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="star">star</span>
+<span class="font-body-md text-body-md">Favorites</span>
+</div>
+<div class="mx-2 text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all rounded-r-full px-4 py-3 flex items-center gap-3 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="folder">folder</span>
+<span class="font-body-md text-body-md">Folders</span>
+</div>
+<div class="mx-2 text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all rounded-r-full px-4 py-3 flex items-center gap-3 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+<span class="font-body-md text-body-md">Trash</span>
+</div>
+<div class="mx-2 text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant dark:hover:bg-surface-variant transition-all rounded-r-full px-4 py-3 flex items-center gap-3 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="security">security</span>
+<span class="font-body-md text-body-md">Security Audit</span>
+</div>
+</div>
+</nav>
+<!-- Bottom Navigation Bar (Mobile Only - active vault) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 px-2 pb-safe md:hidden bg-surface-container dark:bg-surface-container border-t border-outline-variant dark:border-outline-variant shadow-sm">
+<div class="flex flex-col items-center justify-center bg-secondary-container dark:bg-secondary-container text-on-secondary-container dark:text-on-secondary-container rounded-full px-4 py-1 scale-95 transition-transform active:scale-90 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="lock_open">lock_open</span>
+<span class="font-label-sm text-label-sm">Vault</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-all cursor-pointer">
+<span class="material-symbols-outlined" data-icon="enhanced_encryption">enhanced_encryption</span>
+<span class="font-label-sm text-label-sm">Generator</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-primary transition-all cursor-pointer">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-sm text-label-sm">Settings</span>
+</div>
+</nav>
+<!-- Micro-interaction Scripts -->
+<script>
+        // Subtle haptic-like effect on button clicks
+        document.querySelectorAll('button, .glass-panel').forEach(el => {
+            el.addEventListener('click', () => {
+                el.style.opacity = '0.7';
+                setTimeout(() => el.style.opacity = '1', 100);
+            });
+        });
+
+        // Search highlight interaction
+        const searchInput = document.querySelector('input');
+        const searchIcon = document.querySelector('.search-container span:first-child');
+        
+        searchInput.addEventListener('focus', () => {
+            searchIcon.style.color = '#c0c1ff';
+        });
+        
+        searchInput.addEventListener('blur', () => {
+            searchIcon.style.color = '#908fa0';
+        });
+    </script>
+</body></html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>OrionVault - Secure Your World</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#4edea3",
+                        "surface-bright": "#31394d",
+                        "primary-fixed": "#e1e0ff",
+                        "error-container": "#93000a",
+                        "surface-container-high": "#222a3d",
+                        "on-error": "#690005",
+                        "surface-tint": "#c0c1ff",
+                        "secondary": "#4edea3",
+                        "surface-container": "#171f33",
+                        "primary-fixed-dim": "#c0c1ff",
+                        "secondary-fixed": "#6ffbbe",
+                        "surface-variant": "#2d3449",
+                        "on-primary-fixed-variant": "#2f2ebe",
+                        "on-secondary": "#003824",
+                        "outline": "#908fa0",
+                        "on-background": "#dae2fd",
+                        "on-surface-variant": "#c7c4d7",
+                        "surface-container-lowest": "#060e20",
+                        "on-primary-fixed": "#07006c",
+                        "on-secondary-fixed-variant": "#005236",
+                        "primary-container": "#8083ff",
+                        "secondary-container": "#00a572",
+                        "inverse-surface": "#dae2fd",
+                        "surface-container-highest": "#2d3449",
+                        "on-secondary-container": "#00311f",
+                        "primary": "#c0c1ff",
+                        "error": "#ffb4ab",
+                        "surface": "#0b1326",
+                        "on-surface": "#dae2fd",
+                        "tertiary-container": "#d97721",
+                        "on-tertiary-container": "#452000",
+                        "on-primary": "#1000a9",
+                        "tertiary-fixed-dim": "#ffb783",
+                        "outline-variant": "#464554",
+                        "on-tertiary": "#4f2500",
+                        "on-error-container": "#ffdad6",
+                        "background": "#0b1326",
+                        "on-secondary-fixed": "#002113",
+                        "on-primary-container": "#0d0096",
+                        "tertiary-fixed": "#ffdcc5",
+                        "tertiary": "#ffb783",
+                        "surface-container-low": "#131b2e",
+                        "inverse-primary": "#494bd6",
+                        "surface-dim": "#0b1326",
+                        "inverse-on-surface": "#283044",
+                        "on-tertiary-fixed-variant": "#703700",
+                        "on-tertiary-fixed": "#301400"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "xs": "8px",
+                        "sm": "12px",
+                        "xl": "32px",
+                        "lg": "24px",
+                        "margin-desktop": "40px",
+                        "margin-mobile": "16px",
+                        "base": "4px",
+                        "gutter": "20px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Inter"],
+                        "code-md": ["JetBrains Mono"],
+                        "label-sm": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "code-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "fontWeight": "600" }],
+                        "body-md": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "headline-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-lg": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #0b1326;
+            color: #dae2fd;
+            -webkit-font-smoothing: antialiased;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(51, 65, 85, 0.5);
+            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .vault-pulse {
+            animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .7; transform: scale(1.05); }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="font-body-md text-body-md overflow-x-hidden selection:bg-primary/30">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky bg-surface dark:bg-surface border-b border-outline-variant dark:border-outline-variant flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 w-full z-50 transition-colors duration-200 ease-in-out">
+<div class="flex items-center gap-xs">
+<div class="w-8 h-8 rounded-full overflow-hidden bg-surface-container-high border border-outline-variant">
+<img class="w-full h-full object-cover" data-alt="A professional high-quality close-up profile portrait of a tech-savvy user in a dark modern setting with subtle neon teal lighting. The aesthetic is clean and corporate, featuring a blurred background of a sophisticated digital workstation. The lighting highlights the user's features with sharp clarity and a deep blue color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1pUpkgiCckLBBA2SIepM6aVFwCK4sKqpDLH9dmyvH7StqSTp_n4Pc7m9f_OAJAmrS5r0Z1D2kIvwl0Q6xJkkJKpNcDE2o4p0fvc0-Umms5AAmlhj1zAdcC_HLMstKtPgORMm0VAvxGs5M7iMThXGzyHAZtqIWCb-qjbpAfTCwxsLn-z2GCbMqHTBTAcsMB1n7NimsRGISv8UqB3Qk7Rm68Jfjno7K1-d0eVrF0yL19Su0OmTUfuMD"/>
+</div>
+<h1 class="font-headline-md text-headline-md font-bold text-primary dark:text-primary">OrionVault</h1>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-variant/50 dark:hover:bg-surface-variant/50 transition-colors duration-200">
+<span class="material-symbols-outlined text-primary dark:text-primary">search</span>
+</button>
+</header>
+<!-- Navigation Drawer (Desktop Only) -->
+<aside class="hidden md:flex flex-col h-screen py-md space-y-2 h-full w-64 fixed left-0 top-16 bg-surface-container-low dark:bg-surface-container-low border-r border-outline-variant dark:border-outline-variant z-40">
+<div class="px-md py-sm mb-xs">
+<div class="flex items-center gap-sm">
+<div class="p-xs bg-secondary-container rounded-lg">
+<span class="material-symbols-outlined text-on-secondary-container">security</span>
+</div>
+<div>
+<p class="font-label-sm text-label-sm text-primary">Secure Storage</p>
+<p class="font-body-md text-body-md font-bold text-on-surface">Main Vault</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<div class="bg-primary-container dark:bg-primary-container text-on-primary-container dark:text-on-primary-container rounded-r-full font-bold px-md py-sm flex items-center gap-md cursor-pointer active:opacity-80 transition-all">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="font-label-sm text-label-sm">All Items</span>
+</div>
+<div class="text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant/30 px-md py-sm flex items-center gap-md cursor-pointer active:opacity-80 transition-all">
+<span class="material-symbols-outlined">star</span>
+<span class="font-label-sm text-label-sm">Favorites</span>
+</div>
+<div class="text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant/30 px-md py-sm flex items-center gap-md cursor-pointer active:opacity-80 transition-all">
+<span class="material-symbols-outlined">folder</span>
+<span class="font-label-sm text-label-sm">Folders</span>
+</div>
+<div class="text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant/30 px-md py-sm flex items-center gap-md cursor-pointer active:opacity-80 transition-all">
+<span class="material-symbols-outlined">security</span>
+<span class="font-label-sm text-label-sm">Security Audit</span>
+</div>
+<div class="text-on-surface-variant dark:text-on-surface-variant hover:bg-surface-variant/30 px-md py-sm flex items-center gap-md cursor-pointer active:opacity-80 transition-all">
+<span class="material-symbols-outlined">delete</span>
+<span class="font-label-sm text-label-sm">Trash</span>
+</div>
+</nav>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 min-h-[calc(100vh-144px)] flex flex-col items-center justify-center px-margin-mobile relative">
+<!-- Atmospheric Background Element -->
+<div class="absolute inset-0 pointer-events-none overflow-hidden">
+
+</div>
+<div class="max-w-md w-full flex flex-col items-center text-center z-10">
+<!-- Center Illustration: Stylized Vault -->
+<div class="relative mb-xl">
+<div class="vault-pulse absolute inset-0 bg-primary/20 blur-3xl rounded-full"></div>
+<div class="glass-panel w-40 h-40 rounded-full flex items-center justify-center relative border-primary/20">
+<span class="material-symbols-outlined text-[80px] text-primary" style="font-variation-settings: 'FILL' 1;">lock</span>
+</div>
+<!-- Mini floating badges for decoration -->
+<div class="absolute -top-2 -right-2 glass-panel p-2 rounded-lg vault-pulse" style="animation-delay: 1s;">
+<span class="material-symbols-outlined text-secondary text-sm">enhanced_encryption</span>
+</div>
+<div class="absolute bottom-4 -left-6 glass-panel p-2 rounded-lg vault-pulse" style="animation-delay: 2s;">
+<span class="material-symbols-outlined text-secondary text-sm">shield</span>
+</div>
+</div>
+<!-- Header Text -->
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-sm">All Items</h2>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-xl px-4">
+                Your vault is empty. Start adding passwords to secure your accounts with industry-leading encryption.
+            </p>
+<!-- Primary Action Button -->
+<button class="group relative px-xl py-md bg-primary text-on-primary rounded-xl font-headline-md text-body-md hover:brightness-110 active:scale-95 transition-all duration-200 flex items-center gap-xs shadow-lg shadow-primary/20 overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500"></div>
+<span class="material-symbols-outlined">add_circle</span>
+<span>Add Your First Item</span>
+</button>
+<button class="mt-lg text-secondary font-label-sm text-label-sm hover:underline flex items-center gap-xs">
+<span class="material-symbols-outlined text-sm">import_export</span>
+                Import from another manager
+            </button>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 px-2 pb-safe md:hidden bg-surface-container dark:bg-surface-container border-t border-outline-variant dark:border-outline-variant shadow-sm">
+<button class="flex flex-col items-center justify-center bg-secondary-container dark:bg-secondary-container text-on-secondary-container dark:text-on-secondary-container rounded-full px-4 py-1 scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">lock_open</span>
+<span class="font-label-sm text-label-sm">Vault</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary transition-transform">
+<span class="material-symbols-outlined">enhanced_encryption</span>
+<span class="font-label-sm text-label-sm">Generator</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant hover:text-primary dark:hover:text-primary transition-transform">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-sm text-label-sm">Settings</span>
+</button>
+</nav>
+<!-- Micro-interactions Script -->
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const primaryBtn = document.querySelector('button.bg-primary');
+            if (primaryBtn) {
+                primaryBtn.addEventListener('click', () => {
+                    // Feedback effect
+                    const originalScale = primaryBtn.style.transform;
+                    primaryBtn.style.transform = 'scale(0.98)';
+                    setTimeout(() => primaryBtn.style.transform = originalScale, 100);
+                });
+            }
+        });
+    </script>
+</body></html>
