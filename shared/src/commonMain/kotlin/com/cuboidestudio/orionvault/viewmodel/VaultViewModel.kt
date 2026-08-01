@@ -22,6 +22,10 @@ class VaultViewModel(private val container: AppContainer) : ViewModel() {
     private val _items = MutableStateFlow<List<VaultItem>>(emptyList())
     val items: StateFlow<List<VaultItem>> = _items.asStateFlow()
 
+    /** Contas sem pasta associada, para a aba "Contas" do Dashboard (independe da pasta navegada). */
+    private val _unfiledItems = MutableStateFlow<List<VaultItem>>(emptyList())
+    val unfiledItems: StateFlow<List<VaultItem>> = _unfiledItems.asStateFlow()
+
     val currentFolderId: String? get() = _breadcrumb.value.lastOrNull()?.id
 
     init {
@@ -51,7 +55,10 @@ class VaultViewModel(private val container: AppContainer) : ViewModel() {
         viewModelScope.launch {
             val folderId = currentFolderId
             _subfolders.value = container.vaultRepository.listFolders(folderId)
-            _items.value = if (folderId != null) container.vaultRepository.listItems(folderId) else emptyList()
+            val unlocked = container.vaultRepository.isUnlocked()
+            // Contas avulsas (folderId nulo) só aparecem na aba "Contas" — a raiz de "Pastas" mostra só pastas.
+            _items.value = if (unlocked && folderId != null) container.vaultRepository.listItems(folderId) else emptyList()
+            _unfiledItems.value = if (unlocked) container.vaultRepository.listItems(null) else emptyList()
         }
     }
 

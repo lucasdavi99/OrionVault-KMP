@@ -17,6 +17,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -32,6 +35,8 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SecondaryTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,6 +44,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,13 +60,18 @@ import com.cuboidestudio.orionvault.ui.components.VaultTextField
 import com.cuboidestudio.orionvault.ui.theme.OrionColors
 import com.cuboidestudio.orionvault.viewmodel.VaultViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+
+private const val TAB_ACCOUNTS = 0
+private const val TAB_FOLDERS = 1
 
 @Composable
 fun VaultScreen(
     viewModel: VaultViewModel,
-    onOpenItem: (folderId: String, itemId: String?) -> Unit,
+    onOpenItem: (folderId: String?, itemId: String?) -> Unit,
     onOpenFolder: (parentId: String?, folderId: String?) -> Unit
 ) {
+    val unfiledItems by viewModel.unfiledItems.collectAsState()
     val breadcrumb by viewModel.breadcrumb.collectAsState()
     val subfolders by viewModel.subfolders.collectAsState()
     val items by viewModel.items.collectAsState()
@@ -69,6 +80,14 @@ fun VaultScreen(
     var searchVisible by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
 
+    val pagerState = rememberPagerState(initialPage = TAB_ACCOUNTS) { 2 }
+    val scope = rememberCoroutineScope()
+
+    val filteredUnfiledItems = remember(unfiledItems, query) {
+        if (query.isBlank()) unfiledItems else unfiledItems.filter {
+            it.title.contains(query, ignoreCase = true) || it.username?.contains(query, ignoreCase = true) == true
+        }
+    }
     val filteredFolders = remember(subfolders, query) {
         if (query.isBlank()) subfolders else subfolders.filter { it.name.contains(query, ignoreCase = true) }
     }
@@ -86,24 +105,13 @@ fun VaultScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    if (breadcrumb.isEmpty()) {
-                        Box(
-                            modifier = Modifier.size(32.dp).background(OrionColors.SurfaceContainerHigh, CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Filled.Lock, contentDescription = null, tint = OrionColors.Primary, modifier = Modifier.size(16.dp))
-                        }
-                        Text("OrionVault", style = MaterialTheme.typography.headlineMedium, color = OrionColors.Primary)
-                    } else {
-                        IconButton(onClick = { viewModel.navigateUp() }) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = OrionColors.Primary)
-                        }
-                        Text(
-                            breadcrumb.last().name,
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = OrionColors.Primary
-                        )
+                    Box(
+                        modifier = Modifier.size(32.dp).background(OrionColors.SurfaceContainerHigh, CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Filled.Lock, contentDescription = null, tint = OrionColors.Primary, modifier = Modifier.size(16.dp))
                     }
+                    Text("OrionVault", style = MaterialTheme.typography.headlineMedium, color = OrionColors.Primary)
                 }
                 IconButton(onClick = {
                     searchVisible = !searchVisible
@@ -127,31 +135,155 @@ fun VaultScreen(
                 )
             }
 
-            val isEmpty = subfolders.isEmpty() && items.isEmpty()
+            SecondaryTabRow(
+                selectedTabIndex = pagerState.currentPage,
+                containerColor = OrionColors.Background,
+                contentColor = OrionColors.Primary
+            ) {
+                Tab(
+                    selected = pagerState.currentPage == TAB_ACCOUNTS,
+                    onClick = { scope.launch { pagerState.animateScrollToPage(TAB_ACCOUNTS) } },
+                    text = { Text("Contas", fontWeight = FontWeight.Bold) }
+                )
+                Tab(
+                    selected = pagerState.currentPage == TAB_FOLDERS,
+                    onClick = { scope.launch { pagerState.animateScrollToPage(TAB_FOLDERS) } },
+                    text = { Text("Pastas", fontWeight = FontWeight.Bold) }
+                )
+            }
+
+            HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
+                when (page) {
+                    TAB_ACCOUNTS -> AccountsTab(
+                        items = filteredUnfiledItems,
+                        onOpenItem = onOpenItem
+                    )
+                    else -> FoldersTab(
+                        breadcrumb = breadcrumb,
+                        folders = filteredFolders,
+                        items = filteredItems,
+                        isEmpty = subfolders.isEmpty() && items.isEmpty(),
+                        folderId = folderId,
+                        onNavigateInto = viewModel::navigateInto,
+                        onNavigateUp = viewModel::navigateUp,
+                        onOpenFolder = onOpenFolder,
+                        onOpenItem = onOpenItem
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AccountsTab(
+    items: List<VaultItem>,
+    onOpenItem: (folderId: String?, itemId: String?) -> Unit
+) {
+    val listState = rememberLazyListState()
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (items.isEmpty()) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Icon(Icons.Filled.VerifiedUser, contentDescription = null, tint = OrionColors.Primary, modifier = Modifier.size(64.dp))
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    "Nenhuma conta ainda",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = OrionColors.OnSurface
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "Contas sem pasta associada aparecem aqui.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = OrionColors.OnSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+            }
+        } else {
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize().widthIn(max = 900.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(items, key = { it.id }) { vaultItem ->
+                    ItemRow(
+                        item = vaultItem,
+                        onClick = { onOpenItem(vaultItem.folderId, vaultItem.id) }
+                    )
+                }
+            }
+        }
+
+        FloatingActionButton(
+            onClick = { onOpenItem(null, null) },
+            modifier = Modifier.align(Alignment.BottomEnd).padding(24.dp),
+            containerColor = OrionColors.SecondaryContainer,
+            contentColor = OrionColors.OnSecondaryContainer
+        ) {
+            Icon(Icons.Filled.Add, contentDescription = "Nova conta")
+        }
+    }
+}
+
+@Composable
+private fun FoldersTab(
+    breadcrumb: List<VaultFolder>,
+    folders: List<VaultFolder>,
+    items: List<VaultItem>,
+    isEmpty: Boolean,
+    folderId: String?,
+    onNavigateInto: (VaultFolder) -> Unit,
+    onNavigateUp: () -> Unit,
+    onOpenFolder: (parentId: String?, folderId: String?) -> Unit,
+    onOpenItem: (folderId: String?, itemId: String?) -> Unit
+) {
+    val listState = rememberLazyListState()
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            if (breadcrumb.isNotEmpty()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    IconButton(onClick = onNavigateUp) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar", tint = OrionColors.Primary)
+                    }
+                    Text(
+                        breadcrumb.last().name,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = OrionColors.Primary
+                    )
+                }
+            }
+
             if (isEmpty) {
                 VaultEmptyState(
                     isRoot = breadcrumb.isEmpty(),
                     onCreateFolder = { onOpenFolder(folderId, null) },
-                    onAddItem = { folderId?.let { onOpenItem(it, null) } }
+                    onAddItem = { onOpenItem(folderId, null) }
                 )
             } else {
                 LazyColumn(
+                    state = listState,
                     modifier = Modifier.fillMaxSize().widthIn(max = 900.dp),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 96.dp),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 96.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    if (filteredFolders.isNotEmpty()) {
-                        item {
-                            SectionHeader(
-                                label = "FOLDERS",
-                                onAdd = { onOpenFolder(folderId, null) }
-                            )
-                        }
-                        items(filteredFolders.chunked(2), key = { row -> row.first().id }) { row ->
+                    if (folders.isNotEmpty()) {
+                        item { SectionHeader(label = "FOLDERS", onAdd = null) }
+                        items(folders.chunked(2), key = { row -> row.first().id }) { row ->
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 row.forEach { folder ->
                                     Box(modifier = Modifier.weight(1f)) {
-                                        FolderCard(folder) { viewModel.navigateInto(folder) }
+                                        FolderCard(folder) { onNavigateInto(folder) }
                                     }
                                 }
                                 if (row.size == 1) Spacer(Modifier.weight(1f))
@@ -160,13 +292,13 @@ fun VaultScreen(
                         item { Spacer(Modifier.height(8.dp)) }
                     } else if (breadcrumb.isNotEmpty()) {
                         item {
-                            SectionHeader(label = "FOLDERS", onAdd = { onOpenFolder(folderId, null) })
+                            SectionHeader(label = "FOLDERS", onAdd = null)
                         }
                     }
 
-                    if (filteredItems.isNotEmpty()) {
+                    if (items.isNotEmpty()) {
                         item { SectionHeader(label = "ITEMS", onAdd = null) }
-                        items(filteredItems, key = { it.id }) { vaultItem ->
+                        items(items, key = { it.id }) { vaultItem ->
                             ItemRow(
                                 item = vaultItem,
                                 onClick = { onOpenItem(vaultItem.folderId, vaultItem.id) }
@@ -177,15 +309,13 @@ fun VaultScreen(
             }
         }
 
-        if (folderId != null) {
-            FloatingActionButton(
-                onClick = { onOpenItem(folderId, null) },
-                modifier = Modifier.align(Alignment.BottomEnd).padding(24.dp),
-                containerColor = OrionColors.SecondaryContainer,
-                contentColor = OrionColors.OnSecondaryContainer
-            ) {
-                Icon(Icons.Filled.Add, contentDescription = "Novo item")
-            }
+        FloatingActionButton(
+            onClick = { onOpenFolder(folderId, null) },
+            modifier = Modifier.align(Alignment.BottomEnd).padding(24.dp),
+            containerColor = OrionColors.SecondaryContainer,
+            contentColor = OrionColors.OnSecondaryContainer
+        ) {
+            Icon(Icons.Filled.CreateNewFolder, contentDescription = "Nova pasta")
         }
     }
 }
@@ -302,7 +432,7 @@ private fun VaultEmptyState(isRoot: Boolean, onCreateFolder: () -> Unit, onAddIt
         Spacer(Modifier.height(24.dp))
 
         Text(
-            "All Items",
+            "Pastas",
             style = MaterialTheme.typography.headlineLarge,
             color = OrionColors.OnSurface
         )

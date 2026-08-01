@@ -32,14 +32,16 @@ private class FakeVaultRepository : VaultRepository {
     override fun isUnlocked(): Boolean = unlocked
 
     override suspend fun listFolders(parentId: String?): List<VaultFolder> = emptyList()
+    override suspend fun listAllFolders(): List<VaultFolder> = emptyList()
     override suspend fun createFolder(parentId: String?, name: String): VaultFolder = error("not used")
     override suspend fun renameFolder(id: String, newName: String) {}
     override suspend fun deleteFolder(id: String) {}
-    override suspend fun listItems(folderId: String): List<VaultItem> = emptyList()
+    override suspend fun listItems(folderId: String?): List<VaultItem> = emptyList()
     override suspend fun createItem(
-        folderId: String,
+        folderId: String?,
         title: String,
         username: String?,
+        email: String?,
         password: String,
         url: String?,
         notes: String?
@@ -47,8 +49,10 @@ private class FakeVaultRepository : VaultRepository {
 
     override suspend fun updateItem(
         id: String,
+        folderId: String?,
         title: String,
         username: String?,
+        email: String?,
         password: String,
         url: String?,
         notes: String?

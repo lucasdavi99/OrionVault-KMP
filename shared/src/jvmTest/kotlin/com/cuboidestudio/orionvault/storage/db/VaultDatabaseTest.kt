@@ -29,23 +29,36 @@ class VaultDatabaseTest {
     fun insertAndSelectItemRoundTrips() {
         val db = inMemoryDatabase()
         db.vaultQueries.insertFolder("f1", null, "Trabalho", 1L, 1L)
-        db.vaultQueries.insertItem("i1", "f1", "Gmail", "user@example.com", "cipher-pass", "https://gmail.com", "cipher-notes", 1L, 1L, 1L)
+        db.vaultQueries.insertItem("i1", "f1", "Gmail", "user@example.com", "cipher-email", "cipher-pass", "https://gmail.com", "cipher-notes", 1L, 1L, 1L)
 
         val items = db.vaultQueries.selectItemsByFolder("f1").executeAsList()
 
         assertEquals(1, items.size)
         assertEquals("Gmail", items[0].title)
+        assertEquals("cipher-email", items[0].emailCipher)
         assertEquals("cipher-pass", items[0].passwordCipher)
         assertEquals(1L, items[0].version)
+    }
+
+    @Test
+    fun insertAndSelectStandaloneItemRoundTrips() {
+        val db = inMemoryDatabase()
+        db.vaultQueries.insertItem("i1", null, "Gmail", null, null, "cipher-pass", null, null, 1L, 1L, 1L)
+
+        val items = db.vaultQueries.selectItemsByFolder(null).executeAsList()
+
+        assertEquals(1, items.size)
+        assertEquals("Gmail", items[0].title)
+        assertNull(items[0].folderId)
     }
 
     @Test
     fun updateItemIncrementsVersion() {
         val db = inMemoryDatabase()
         db.vaultQueries.insertFolder("f1", null, "Trabalho", 1L, 1L)
-        db.vaultQueries.insertItem("i1", "f1", "Gmail", null, "cipher-pass", null, null, 1L, 1L, 1L)
+        db.vaultQueries.insertItem("i1", "f1", "Gmail", null, null, "cipher-pass", null, null, 1L, 1L, 1L)
 
-        db.vaultQueries.updateItem("Gmail", null, "cipher-pass-2", null, null, 2L, 2L, "i1")
+        db.vaultQueries.updateItem("f1", "Gmail", null, null, "cipher-pass-2", null, null, 2L, 2L, "i1")
 
         val item = db.vaultQueries.selectItemById("i1").executeAsOne()
         assertEquals("cipher-pass-2", item.passwordCipher)

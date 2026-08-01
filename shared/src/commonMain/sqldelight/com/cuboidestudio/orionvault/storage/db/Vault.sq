@@ -10,9 +10,10 @@ CREATE INDEX Folder_parentId ON Folder(parentId);
 
 CREATE TABLE Item (
   id TEXT NOT NULL PRIMARY KEY,
-  folderId TEXT NOT NULL,
+  folderId TEXT,
   title TEXT NOT NULL,
   usernameCipher TEXT,
+  emailCipher TEXT,
   passwordCipher TEXT NOT NULL,
   urlCipher TEXT,
   notesCipher TEXT,
@@ -27,6 +28,9 @@ CREATE INDEX Item_folderId ON Item(folderId);
 
 selectFoldersByParent:
 SELECT * FROM Folder WHERE (parentId IS NULL AND :parentId IS NULL) OR parentId = :parentId ORDER BY name COLLATE NOCASE;
+
+selectAllFolders:
+SELECT * FROM Folder ORDER BY name COLLATE NOCASE;
 
 selectFolderById:
 SELECT * FROM Folder WHERE id = ?;
@@ -47,18 +51,18 @@ DELETE FROM Folder WHERE id = ?;
 -- Item queries
 
 selectItemsByFolder:
-SELECT * FROM Item WHERE folderId = ? ORDER BY title COLLATE NOCASE;
+SELECT * FROM Item WHERE (folderId IS NULL AND :folderId IS NULL) OR folderId = :folderId ORDER BY title COLLATE NOCASE;
 
 selectItemById:
 SELECT * FROM Item WHERE id = ?;
 
 insertItem:
-INSERT INTO Item (id, folderId, title, usernameCipher, passwordCipher, urlCipher, notesCipher, createdAt, updatedAt, version)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO Item (id, folderId, title, usernameCipher, emailCipher, passwordCipher, urlCipher, notesCipher, createdAt, updatedAt, version)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 updateItem:
 UPDATE Item
-SET title = ?, usernameCipher = ?, passwordCipher = ?, urlCipher = ?, notesCipher = ?, updatedAt = ?, version = ?
+SET folderId = ?, title = ?, usernameCipher = ?, emailCipher = ?, passwordCipher = ?, urlCipher = ?, notesCipher = ?, updatedAt = ?, version = ?
 WHERE id = ?;
 
 deleteItem:

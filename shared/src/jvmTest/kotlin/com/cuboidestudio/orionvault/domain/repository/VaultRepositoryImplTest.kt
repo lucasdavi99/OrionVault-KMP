@@ -65,12 +65,13 @@ class VaultRepositoryImplTest {
         repo.createVault("correct horse".toCharArray())
 
         val folder = repo.createFolder(null, "Trabalho")
-        val item = repo.createItem(folder.id, "Gmail", "user@example.com", "s3cr3t", "https://gmail.com", "nota")
+        val item = repo.createItem(folder.id, "Gmail", "user@example.com", "user@email.com", "s3cr3t", "https://gmail.com", "nota")
 
         val items = repo.listItems(folder.id)
         assertEquals(1, items.size)
         assertEquals("Gmail", items[0].title)
         assertEquals("user@example.com", items[0].username)
+        assertEquals("user@email.com", items[0].email)
         assertEquals("s3cr3t", items[0].password)
         assertEquals("https://gmail.com", items[0].url)
         assertEquals("nota", items[0].notes)
@@ -79,18 +80,75 @@ class VaultRepositoryImplTest {
     }
 
     @Test
+    fun createItemWithoutEmailLeavesEmailNull() = runTest {
+        ensureLibsodiumInitialized()
+        val repo = newRepository()
+        repo.createVault("correct horse".toCharArray())
+        val folder = repo.createFolder(null, "Trabalho")
+
+        val item = repo.createItem(folder.id, "Gmail", null, null, "s3cr3t", null, null)
+
+        assertNull(item.email)
+        assertNull(repo.listItems(folder.id).single().email)
+    }
+
+    @Test
+    fun updateItemCanAddAndRemoveEmail() = runTest {
+        ensureLibsodiumInitialized()
+        val repo = newRepository()
+        repo.createVault("correct horse".toCharArray())
+        val folder = repo.createFolder(null, "Trabalho")
+        val item = repo.createItem(folder.id, "Gmail", null, null, "s3cr3t", null, null)
+
+        repo.updateItem(item.id, folder.id, "Gmail", null, "added@email.com", "s3cr3t", null, null)
+        assertEquals("added@email.com", repo.listItems(folder.id).single().email)
+
+        repo.updateItem(item.id, folder.id, "Gmail", null, null, "s3cr3t", null, null)
+        assertNull(repo.listItems(folder.id).single().email)
+    }
+
+    @Test
     fun updateItemIncrementsVersionAndChangesCipher() = runTest {
         ensureLibsodiumInitialized()
         val repo = newRepository()
         repo.createVault("correct horse".toCharArray())
         val folder = repo.createFolder(null, "Trabalho")
-        val item = repo.createItem(folder.id, "Gmail", null, "s3cr3t", null, null)
+        val item = repo.createItem(folder.id, "Gmail", null, null, "s3cr3t", null, null)
 
-        repo.updateItem(item.id, "Gmail", null, "n0v4s3nh4", null, null)
+        repo.updateItem(item.id, folder.id, "Gmail", null, null, "n0v4s3nh4", null, null)
 
         val updated = repo.listItems(folder.id).single()
         assertEquals(2, updated.version)
         assertEquals("n0v4s3nh4", updated.password)
+    }
+
+    @Test
+    fun updateItemCanMoveItemBetweenFolders() = runTest {
+        ensureLibsodiumInitialized()
+        val repo = newRepository()
+        repo.createVault("correct horse".toCharArray())
+        val folderA = repo.createFolder(null, "Trabalho")
+        val folderB = repo.createFolder(null, "Pessoal")
+        val item = repo.createItem(folderA.id, "Gmail", null, null, "s3cr3t", null, null)
+
+        repo.updateItem(item.id, folderB.id, "Gmail", null, null, "s3cr3t", null, null)
+
+        assertTrue(repo.listItems(folderA.id).isEmpty())
+        assertEquals(item.id, repo.listItems(folderB.id).single().id)
+    }
+
+    @Test
+    fun updateItemCanUnfileItemFromFolder() = runTest {
+        ensureLibsodiumInitialized()
+        val repo = newRepository()
+        repo.createVault("correct horse".toCharArray())
+        val folder = repo.createFolder(null, "Trabalho")
+        val item = repo.createItem(folder.id, "Gmail", null, null, "s3cr3t", null, null)
+
+        repo.updateItem(item.id, null, "Gmail", null, null, "s3cr3t", null, null)
+
+        assertTrue(repo.listItems(folder.id).isEmpty())
+        assertEquals(item.id, repo.listItems(null).single().id)
     }
 
     @Test

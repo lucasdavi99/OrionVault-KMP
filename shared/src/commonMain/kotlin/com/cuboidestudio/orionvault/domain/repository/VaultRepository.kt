@@ -21,15 +21,21 @@ interface VaultRepository {
     fun isUnlocked(): Boolean
 
     suspend fun listFolders(parentId: String?): List<VaultFolder>
+
+    /** Todas as pastas do cofre, sem respeitar hierarquia — usado pelo seletor de pasta do editor de itens. */
+    suspend fun listAllFolders(): List<VaultFolder>
     suspend fun createFolder(parentId: String?, name: String): VaultFolder
     suspend fun renameFolder(id: String, newName: String)
     suspend fun deleteFolder(id: String)
 
-    suspend fun listItems(folderId: String): List<VaultItem>
+    /** folderId nulo lista/cria contas avulsas (sem pasta). */
+    suspend fun listItems(folderId: String?): List<VaultItem>
+
     suspend fun createItem(
-        folderId: String,
+        folderId: String?,
         title: String,
         username: String?,
+        email: String?,
         password: String,
         url: String?,
         notes: String?
@@ -37,8 +43,10 @@ interface VaultRepository {
 
     suspend fun updateItem(
         id: String,
+        folderId: String?,
         title: String,
         username: String?,
+        email: String?,
         password: String,
         url: String?,
         notes: String?

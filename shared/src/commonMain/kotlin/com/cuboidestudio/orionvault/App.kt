@@ -30,12 +30,18 @@ fun App(container: AppContainer) {
 
             Route.Onboarding -> {
                 val vm = remember { OnboardingViewModel(container) }
-                OnboardingScreen(vm, onCompleted = { rootViewModel.navigateTo(Route.Vault) })
+                OnboardingScreen(vm, onCompleted = {
+                    vaultViewModel.refresh()
+                    rootViewModel.navigateTo(Route.Vault)
+                })
             }
 
             Route.Unlock -> {
                 val vm = remember { UnlockViewModel(container) }
-                UnlockScreen(vm, onUnlocked = { rootViewModel.navigateTo(Route.Vault) })
+                UnlockScreen(vm, onUnlocked = {
+                    vaultViewModel.refresh()
+                    rootViewModel.navigateTo(Route.Vault)
+                })
             }
 
             Route.Vault -> {

@@ -12,6 +12,7 @@ import com.cuboidestudio.orionvault.crypto.ensureLibsodiumInitialized
 import com.cuboidestudio.orionvault.domain.model.VaultConstants
 import com.cuboidestudio.orionvault.domain.model.VaultFolder
 import com.cuboidestudio.orionvault.domain.model.VaultItem
+import com.cuboidestudio.orionvault.storage.db.Item
 import com.cuboidestudio.orionvault.storage.db.OrionVaultDatabase
 import com.cuboidestudio.orionvault.storage.secure.SecureCredentialStore
 import com.cuboidestudio.orionvault.storage.secure.StoredVaultSecrets
@@ -62,6 +63,11 @@ class VaultRepositoryImpl(
             VaultFolder(it.id, it.parentId, it.name, it.createdAt, it.updatedAt)
         }
 
+    override suspend fun listAllFolders(): List<VaultFolder> =
+        database.vaultQueries.selectAllFolders().executeAsList().map {
+            VaultFolder(it.id, it.parentId, it.name, it.createdAt, it.updatedAt)
+        }
+
     override suspend fun createFolder(parentId: String?, name: String): VaultFolder {
         val newDepth = depthOf(parentId) + 1
         if (newDepth > VaultConstants.MAX_FOLDER_DEPTH) {
@@ -83,29 +89,31 @@ class VaultRepositoryImpl(
         database.vaultQueries.deleteFolder(id)
     }
 
-    override suspend fun listItems(folderId: String): List<VaultItem> {
+    override suspend fun listItems(folderId: String?): List<VaultItem> {
         ensureLibsodiumInitialized()
         val key = requireKey()
-        return database.vaultQueries.selectItemsByFolder(folderId).executeAsList().map { row ->
-            VaultItem(
-                id = row.id,
-                folderId = row.folderId,
-                title = row.title,
-                username = row.usernameCipher?.let { decryptField(it, key) },
-                password = decryptField(row.passwordCipher, key),
-                url = row.urlCipher?.let { decryptField(it, key) },
-                notes = row.notesCipher?.let { decryptField(it, key) },
-                createdAt = row.createdAt,
-                updatedAt = row.updatedAt,
-                version = row.version.toInt()
-            )
-        }
+        return database.vaultQueries.selectItemsByFolder(folderId).executeAsList().map { toVaultItem(it, key) }
     }
 
+    private fun toVaultItem(row: Item, key: ByteArray): VaultItem = VaultItem(
+        id = row.id,
+        folderId = row.folderId,
+        title = row.title,
+        username = row.usernameCipher?.let { decryptField(it, key) },
+        email = row.emailCipher?.let { decryptField(it, key) },
+        password = decryptField(row.passwordCipher, key),
+        url = row.urlCipher?.let { decryptField(it, key) },
+        notes = row.notesCipher?.let { decryptField(it, key) },
+        createdAt = row.createdAt,
+        updatedAt = row.updatedAt,
+        version = row.version.toInt()
+    )
+
     override suspend fun createItem(
-        folderId: String,
+        folderId: String?,
         title: String,
         username: String?,
+        email: String?,
         password: String,
         url: String?,
         notes: String?
@@ -117,18 +125,21 @@ class VaultRepositoryImpl(
         database.vaultQueries.insertItem(
             id, folderId, title,
             username?.let { encryptField(it, key) },
+            email?.let { encryptField(it, key) },
             encryptField(password, key),
             url?.let { encryptField(it, key) },
             notes?.let { encryptField(it, key) },
             now, now, 1L
         )
-        return VaultItem(id, folderId, title, username, password, url, notes, now, now, 1)
+        return VaultItem(id, folderId, title, username, email, password, url, notes, now, now, 1)
     }
 
     override suspend fun updateItem(
         id: String,
+        folderId: String?,
         title: String,
         username: String?,
+        email: String?,
         password: String,
         url: String?,
         notes: String?
@@ -138,8 +149,10 @@ class VaultRepositoryImpl(
         val current = database.vaultQueries.selectItemById(id).executeAsOne()
         val now = Clock.System.now().toEpochMilliseconds()
         database.vaultQueries.updateItem(
+            folderId,
             title,
             username?.let { encryptField(it, key) },
+            email?.let { encryptField(it, key) },
             encryptField(password, key),
             url?.let { encryptField(it, key) },
             notes?.let { encryptField(it, key) },
