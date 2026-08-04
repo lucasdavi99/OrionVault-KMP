@@ -9,7 +9,7 @@ actual fun createSqlDriver(context: PlatformContext): SqlDriver {
     val dir = vaultDataDir()
     dir.mkdirs()
     val dbFile = File(dir, "orionvault.db")
-    val needsSchema = !dbFile.exists()
+    val needsSchema = !dbFile.exists() || dbFile.length() == 0L
     val driver = JdbcSqliteDriver("jdbc:sqlite:${dbFile.absolutePath}")
     if (needsSchema) {
         OrionVaultDatabase.Schema.create(driver)

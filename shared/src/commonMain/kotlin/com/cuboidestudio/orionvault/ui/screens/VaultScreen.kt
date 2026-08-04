@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -245,7 +246,9 @@ private fun FoldersTab(
 ) {
     val listState = rememberLazyListState()
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val gridWidth = if (maxWidth < 900.dp) maxWidth else 900.dp
+        val folderColumns = (gridWidth / 200.dp).toInt().coerceIn(2, 4)
         Column(modifier = Modifier.fillMaxSize()) {
             if (breadcrumb.isNotEmpty()) {
                 Row(
@@ -279,14 +282,14 @@ private fun FoldersTab(
                 ) {
                     if (folders.isNotEmpty()) {
                         item { SectionHeader(label = "FOLDERS", onAdd = null) }
-                        items(folders.chunked(2), key = { row -> row.first().id }) { row ->
+                        items(folders.chunked(folderColumns), key = { row -> row.first().id }) { row ->
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 row.forEach { folder ->
                                     Box(modifier = Modifier.weight(1f)) {
                                         FolderCard(folder) { onNavigateInto(folder) }
                                     }
                                 }
-                                if (row.size == 1) Spacer(Modifier.weight(1f))
+                                repeat(folderColumns - row.size) { Spacer(Modifier.weight(1f)) }
                             }
                         }
                         item { Spacer(Modifier.height(8.dp)) }
