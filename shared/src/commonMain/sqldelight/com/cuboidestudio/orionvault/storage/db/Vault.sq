@@ -3,7 +3,10 @@ CREATE TABLE Folder (
   parentId TEXT,
   name TEXT NOT NULL,
   createdAt INTEGER NOT NULL,
-  updatedAt INTEGER NOT NULL
+  updatedAt INTEGER NOT NULL,
+  version INTEGER NOT NULL DEFAULT 1,
+  syncState INTEGER NOT NULL DEFAULT 1,
+  syncedVersion INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE INDEX Folder_parentId ON Folder(parentId);
@@ -19,51 +22,117 @@ CREATE TABLE Item (
   notesCipher TEXT,
   createdAt INTEGER NOT NULL,
   updatedAt INTEGER NOT NULL,
-  version INTEGER NOT NULL
+  version INTEGER NOT NULL,
+  syncState INTEGER NOT NULL DEFAULT 1,
+  syncedVersion INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE INDEX Item_folderId ON Item(folderId);
 
+-- Cursor de pull incremental (linha única, id = 0). Não é segredo, então não vive no
+-- SecureCredentialStore; não é por linha, então não vive em Folder/Item.
+CREATE TABLE SyncMeta (
+  id INTEGER NOT NULL PRIMARY KEY,
+  lastPulledAt INTEGER,
+  deviceId TEXT
+);
+
+-- syncState: 0 = limpo, 1 = sujo/nunca enviado, 2 = sujo/já enviado antes, 3 = tombstone.
+-- syncedVersion: versão confirmada pelo servidor na última sincronização (0 = nunca sincronizado).
+-- É ela — e não `version`, que é o contador de revisões locais — que serve de base para a
+-- concorrência otimista (`version=eq.<syncedVersion>` no PATCH do PostgREST).
+
 -- Folder queries
 
 selectFoldersByParent:
-SELECT * FROM Folder WHERE (parentId IS NULL AND :parentId IS NULL) OR parentId = :parentId ORDER BY name COLLATE NOCASE;
+SELECT * FROM Folder WHERE syncState != 3 AND ((parentId IS NULL AND :parentId IS NULL) OR parentId = :parentId) ORDER BY name COLLATE NOCASE;
 
 selectAllFolders:
-SELECT * FROM Folder ORDER BY name COLLATE NOCASE;
+SELECT * FROM Folder WHERE syncState != 3 ORDER BY name COLLATE NOCASE;
 
 selectFolderById:
 SELECT * FROM Folder WHERE id = ?;
 
 countFolderChildren:
-SELECT COUNT(*) FROM Folder WHERE parentId = ?;
+SELECT COUNT(*) FROM Folder WHERE parentId = ? AND syncState != 3;
 
 insertFolder:
-INSERT INTO Folder (id, parentId, name, createdAt, updatedAt)
-VALUES (?, ?, ?, ?, ?);
+INSERT INTO Folder (id, parentId, name, createdAt, updatedAt, version, syncState, syncedVersion)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
 renameFolder:
-UPDATE Folder SET name = ?, updatedAt = ? WHERE id = ?;
+UPDATE Folder SET name = ?, updatedAt = ?, version = ?, syncState = ? WHERE id = ?;
 
-deleteFolder:
-DELETE FROM Folder WHERE id = ?;
+-- Delete local = tombstone. A linha só é removida fisicamente por purgeTombstoneFolder,
+-- depois do delete confirmado no servidor (ou imediatamente, se nunca foi enviada).
+tombstoneFolder:
+UPDATE Folder SET syncState = 3, updatedAt = ? WHERE id = ?;
+
+purgeTombstoneFolder:
+DELETE FROM Folder WHERE id = ? AND syncState = 3;
+
+selectDirtyFolders:
+SELECT * FROM Folder WHERE syncState != 0;
+
+markFolderSynced:
+UPDATE Folder SET syncState = 0, syncedVersion = ? WHERE id = ?;
+
+-- INSERT OR REPLACE em vez de UPSERT (ON CONFLICT ... DO UPDATE): UPSERT exige SQLite 3.24+,
+-- e o minSdk 28 do projeto ainda alcança Android 9/10, que embarcam SQLite 3.22/3.28.
+upsertRemoteFolder:
+INSERT OR REPLACE INTO Folder (id, parentId, name, createdAt, updatedAt, version, syncState, syncedVersion)
+VALUES (?, ?, ?, ?, ?, ?, 0, ?);
 
 -- Item queries
 
 selectItemsByFolder:
-SELECT * FROM Item WHERE (folderId IS NULL AND :folderId IS NULL) OR folderId = :folderId ORDER BY title COLLATE NOCASE;
+SELECT * FROM Item WHERE syncState != 3 AND ((folderId IS NULL AND :folderId IS NULL) OR folderId = :folderId) ORDER BY title COLLATE NOCASE;
 
 selectItemById:
 SELECT * FROM Item WHERE id = ?;
 
 insertItem:
-INSERT INTO Item (id, folderId, title, usernameCipher, emailCipher, passwordCipher, urlCipher, notesCipher, createdAt, updatedAt, version)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO Item (id, folderId, title, usernameCipher, emailCipher, passwordCipher, urlCipher, notesCipher, createdAt, updatedAt, version, syncState, syncedVersion)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 updateItem:
 UPDATE Item
-SET folderId = ?, title = ?, usernameCipher = ?, emailCipher = ?, passwordCipher = ?, urlCipher = ?, notesCipher = ?, updatedAt = ?, version = ?
+SET folderId = ?, title = ?, usernameCipher = ?, emailCipher = ?, passwordCipher = ?, urlCipher = ?, notesCipher = ?, updatedAt = ?, version = ?, syncState = ?
 WHERE id = ?;
 
-deleteItem:
-DELETE FROM Item WHERE id = ?;
+-- Além de marcar o tombstone, zera as colunas cifradas: a linha morta não deve continuar
+-- carregando ciphertext enquanto espera a purga. passwordCipher é NOT NULL, então vira ''.
+tombstoneItem:
+UPDATE Item
+SET syncState = 3, updatedAt = ?, usernameCipher = NULL, emailCipher = NULL, passwordCipher = '', urlCipher = NULL, notesCipher = NULL
+WHERE id = ?;
+
+purgeTombstoneItem:
+DELETE FROM Item WHERE id = ? AND syncState = 3;
+
+selectDirtyItems:
+SELECT * FROM Item WHERE syncState != 0;
+
+markItemSynced:
+UPDATE Item SET syncState = 0, syncedVersion = ? WHERE id = ?;
+
+upsertRemoteItem:
+INSERT OR REPLACE INTO Item (id, folderId, title, usernameCipher, emailCipher, passwordCipher, urlCipher, notesCipher, createdAt, updatedAt, version, syncState, syncedVersion)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?);
+
+-- SyncMeta queries
+
+selectSyncMeta:
+SELECT lastPulledAt, deviceId FROM SyncMeta WHERE id = 0;
+
+-- Garante a linha única antes de qualquer UPDATE (mesma razão do INSERT OR REPLACE acima:
+-- sem UPSERT, para não exigir SQLite 3.24+).
+ensureSyncMetaRow:
+INSERT OR IGNORE INTO SyncMeta (id, lastPulledAt, deviceId) VALUES (0, NULL, NULL);
+
+updateSyncCursor:
+UPDATE SyncMeta SET lastPulledAt = ? WHERE id = 0;
+
+-- deviceId é só um identificador aleatório de dispositivo para item_versions. Não é segredo.
+updateDeviceId:
+UPDATE SyncMeta SET deviceId = ? WHERE id = 0;

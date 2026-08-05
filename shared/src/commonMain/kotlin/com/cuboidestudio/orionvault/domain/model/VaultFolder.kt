@@ -5,5 +5,7 @@ data class VaultFolder(
     val parentId: String?,
     val name: String,
     val createdAt: Long,
-    val updatedAt: Long
+    val updatedAt: Long,
+    /** Contador de revisões locais, espelhando [VaultItem.version]. */
+    val version: Int = 1
 )

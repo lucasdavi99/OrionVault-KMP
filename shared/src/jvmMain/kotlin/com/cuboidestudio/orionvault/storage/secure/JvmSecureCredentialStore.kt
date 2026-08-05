@@ -21,6 +21,9 @@ private fun secureStorageDir(): File {
 private fun secretsFile(): File =
     File(secureStorageDir(), if (isWindows) "vault_secrets.dpapi" else "vault_secrets.enc")
 
+private fun authSessionFile(): File =
+    File(secureStorageDir(), if (isWindows) "auth_session.dpapi" else "auth_session.enc")
+
 /**
  * Implementação real para Windows via DPAPI (JNA `Crypt32Util`): os bytes só podem ser
  * descriptografados pelo mesmo usuário/máquina que os protegeu (design doc seção 5).
@@ -32,9 +35,30 @@ private fun secretsFile(): File =
  */
 class JvmSecureCredentialStore : SecureCredentialStore {
     override suspend fun saveVaultSecrets(secrets: StoredVaultSecrets) {
-        val serialized = VaultSecretsSerializer.serialize(secrets).toByteArray(StandardCharsets.UTF_8)
+        writeProtected(secretsFile(), VaultSecretsSerializer.serialize(secrets))
+    }
+
+    override suspend fun loadVaultSecrets(): StoredVaultSecrets? =
+        readProtected(secretsFile())?.let { VaultSecretsSerializer.deserialize(it) }
+
+    override suspend fun clear() {
+        secretsFile().delete()
+    }
+
+    override suspend fun saveAuthSession(session: StoredAuthSession) {
+        writeProtected(authSessionFile(), AuthSessionSerializer.serialize(session))
+    }
+
+    override suspend fun loadAuthSession(): StoredAuthSession? =
+        readProtected(authSessionFile())?.let { AuthSessionSerializer.deserialize(it) }
+
+    override suspend fun clearAuthSession() {
+        authSessionFile().delete()
+    }
+
+    private fun writeProtected(file: File, content: String) {
+        val serialized = content.toByteArray(StandardCharsets.UTF_8)
         val protected = if (isWindows) Crypt32Util.cryptProtectData(serialized) else serialized
-        val file = secretsFile()
         Files.write(file.toPath(), protected)
         if (!isWindows) {
             try {
@@ -45,15 +69,10 @@ class JvmSecureCredentialStore : SecureCredentialStore {
         }
     }
 
-    override suspend fun loadVaultSecrets(): StoredVaultSecrets? {
-        val file = secretsFile()
+    private fun readProtected(file: File): String? {
         if (!file.exists()) return null
         val stored = Files.readAllBytes(file.toPath())
         val plain = if (isWindows) Crypt32Util.cryptUnprotectData(stored) else stored
-        return VaultSecretsSerializer.deserialize(String(plain, StandardCharsets.UTF_8))
-    }
-
-    override suspend fun clear() {
-        secretsFile().delete()
+        return String(plain, StandardCharsets.UTF_8)
     }
 }

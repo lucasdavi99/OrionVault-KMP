@@ -1,5 +1,8 @@
 package com.cuboidestudio.orionvault.session
 
+import com.cuboidestudio.orionvault.crypto.KdfParams
+import com.cuboidestudio.orionvault.domain.model.SyncFolder
+import com.cuboidestudio.orionvault.domain.model.SyncItem
 import com.cuboidestudio.orionvault.domain.model.VaultFolder
 import com.cuboidestudio.orionvault.domain.model.VaultItem
 import com.cuboidestudio.orionvault.domain.repository.VaultRepository
@@ -19,6 +22,13 @@ private class FakeVaultRepository : VaultRepository {
 
     override suspend fun isVaultInitialized(): Boolean = true
     override suspend fun createVault(masterPassword: CharArray): String = ""
+    override suspend fun restoreVault(masterPassword: CharArray, secretKey: ByteArray, params: KdfParams) {}
+    override suspend fun verifyKeyAgainstCiphertext(
+        masterPassword: CharArray,
+        secretKey: ByteArray,
+        params: KdfParams,
+        sampleCipher: String
+    ): Boolean = true
     override suspend fun unlock(masterPassword: CharArray): Boolean {
         unlocked = true
         return true
@@ -60,6 +70,18 @@ private class FakeVaultRepository : VaultRepository {
     }
 
     override suspend fun deleteItem(id: String) {}
+
+    override suspend fun listDirtyFolders(): List<SyncFolder> = emptyList()
+    override suspend fun listDirtyItems(): List<SyncItem> = emptyList()
+    override suspend fun markFolderSynced(id: String, newVersion: Long) {}
+    override suspend fun markItemSynced(id: String, newVersion: Long) {}
+    override suspend fun purgeTombstone(id: String, isFolder: Boolean) {}
+    override suspend fun applyRemoteFolder(remote: SyncFolder) {}
+    override suspend fun applyRemoteItem(remote: SyncItem) {}
+    override suspend fun getSyncCursor(): Long? = null
+    override suspend fun setSyncCursor(timestamp: Long) {}
+    override suspend fun getOrCreateDeviceId(): String = "test-device"
+    override suspend fun getLocalKdfParams(): KdfParams? = null
 }
 
 class SessionManagerTest {

@@ -1,0 +1,21 @@
+-- Migração 1 -> 2: colunas de sincronização em nuvem.
+--
+-- Nomenclatura: no SQLDelight, `<n>.sqm` migra do schema versão n para n+1. O schema base
+-- (Vault.sq sem migrações) é a versão 1, então este arquivo é `1.sqm` e leva o banco à versão 2.
+--
+-- DEFAULT 1 em syncState significa que toda linha pré-existente entra como "suja, nunca
+-- enviada" — correto, já que nada jamais foi sincronizado antes desta migração.
+-- syncedVersion DEFAULT 0 = nenhuma versão confirmada pelo servidor ainda.
+
+ALTER TABLE Folder ADD COLUMN version INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE Folder ADD COLUMN syncState INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE Folder ADD COLUMN syncedVersion INTEGER NOT NULL DEFAULT 0;
+
+ALTER TABLE Item ADD COLUMN syncState INTEGER NOT NULL DEFAULT 1;
+ALTER TABLE Item ADD COLUMN syncedVersion INTEGER NOT NULL DEFAULT 0;
+
+CREATE TABLE SyncMeta (
+  id INTEGER NOT NULL PRIMARY KEY,
+  lastPulledAt INTEGER,
+  deviceId TEXT
+);

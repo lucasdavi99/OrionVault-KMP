@@ -23,7 +23,21 @@ class AndroidSecureCredentialStore(private val context: Context) : SecureCredent
         prefs.edit().remove(KEY).apply()
     }
 
+    override suspend fun saveAuthSession(session: StoredAuthSession) {
+        prefs.edit().putString(AUTH_KEY, AuthSessionSerializer.serialize(session)).apply()
+    }
+
+    override suspend fun loadAuthSession(): StoredAuthSession? {
+        val raw = prefs.getString(AUTH_KEY, null) ?: return null
+        return AuthSessionSerializer.deserialize(raw)
+    }
+
+    override suspend fun clearAuthSession() {
+        prefs.edit().remove(AUTH_KEY).apply()
+    }
+
     companion object {
         private const val KEY = "vault_secrets"
+        private const val AUTH_KEY = "cloud_auth_session"
     }
 }

@@ -21,7 +21,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.EnhancedEncryption
 import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Lock
@@ -30,6 +32,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -62,6 +65,7 @@ import com.cuboidestudio.orionvault.viewmodel.OnboardingViewModel
 fun OnboardingScreen(viewModel: OnboardingViewModel, onCompleted: () -> Unit) {
     val step by viewModel.step.collectAsState()
     val error by viewModel.errorMessage.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
     val completed by viewModel.completed.collectAsState()
 
     LaunchedEffect(completed) {
@@ -82,6 +86,11 @@ fun OnboardingScreen(viewModel: OnboardingViewModel, onCompleted: () -> Unit) {
             Spacer(Modifier.height(32.dp))
 
             when (val currentStep = step) {
+                is OnboardingStep.ChooseMode -> ChooseModeStep(
+                    onCreate = { viewModel.chooseCreate() },
+                    onRestore = { viewModel.chooseRestore() }
+                )
+
                 is OnboardingStep.SetMasterPassword -> SetMasterPasswordStep(
                     error = error,
                     onCreate = { password, confirm -> viewModel.createVault(password, confirm) }
@@ -90,6 +99,21 @@ fun OnboardingScreen(viewModel: OnboardingViewModel, onCompleted: () -> Unit) {
                 is OnboardingStep.ShowSecretKey -> ShowSecretKeyStep(
                     secretKey = currentStep.secretKeyDisplay,
                     onConfirm = { viewModel.confirmSecretKeySaved() }
+                )
+
+                is OnboardingStep.RestoreLogin -> RestoreLoginStep(
+                    error = error,
+                    isLoading = isLoading,
+                    onSubmit = { email, password -> viewModel.restoreLogin(email, password) },
+                    onBack = { viewModel.backToChooseMode() }
+                )
+
+                is OnboardingStep.RestoreVaultSecrets -> RestoreVaultSecretsStep(
+                    error = error,
+                    isLoading = isLoading,
+                    onSubmit = { password, confirm, secretKey ->
+                        viewModel.restoreVault(password, confirm, secretKey)
+                    }
                 )
             }
         }
@@ -195,6 +219,221 @@ private fun SetMasterPasswordStep(error: String?, onCreate: (CharArray, CharArra
             Text("Criar Cofre", style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.width(8.dp))
             Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
+        }
+    }
+}
+
+@Composable
+private fun ChooseModeStep(onCreate: () -> Unit, onRestore: () -> Unit) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        InfoCard(
+            icon = Icons.Filled.Key,
+            iconTint = OrionColors.Primary,
+            title = "Primeiro dispositivo",
+            titleColor = OrionColors.OnSurface,
+            description = "Crie um cofre novo: geramos sua Secret Key aqui mesmo e exibimos uma única vez para você guardar."
+        )
+
+        InfoCard(
+            icon = Icons.Filled.CloudSync,
+            iconTint = OrionColors.Secondary,
+            title = "Já tenho um cofre",
+            titleColor = OrionColors.Secondary,
+            description = "Entre na sua conta e traga o cofre existente para este aparelho usando a Secret Key que você anotou."
+        )
+
+        Button(
+            onClick = onCreate,
+            modifier = Modifier.fillMaxWidth().height(52.dp),
+            shape = MaterialTheme.shapes.small,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = OrionColors.SecondaryContainer,
+                contentColor = OrionColors.OnSecondaryContainer
+            )
+        ) {
+            Text("Criar cofre novo", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.width(8.dp))
+            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
+        }
+
+        Button(
+            onClick = onRestore,
+            modifier = Modifier.fillMaxWidth().height(52.dp),
+            shape = MaterialTheme.shapes.small,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = OrionColors.SurfaceContainerLowest,
+                contentColor = OrionColors.Primary
+            )
+        ) {
+            Text("Já tenho uma Secret Key", style = MaterialTheme.typography.titleMedium)
+        }
+    }
+}
+
+@Composable
+private fun RestoreLoginStep(
+    error: String?,
+    isLoading: Boolean,
+    onSubmit: (String, CharArray) -> Unit,
+    onBack: () -> Unit
+) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        InfoCard(
+            icon = Icons.Filled.CloudSync,
+            iconTint = OrionColors.Secondary,
+            title = "Conta na nuvem",
+            titleColor = OrionColors.Secondary,
+            description = "Entre com as credenciais da conta usada no outro dispositivo. É de lá que vêm os parâmetros necessários para recriar a mesma chave do seu cofre — sua Master Password e sua Secret Key continuam sem sair daqui."
+        )
+
+        VaultTextField(
+            value = email,
+            onValueChange = { email = it },
+            modifier = Modifier.fillMaxWidth(),
+            label = "E-mail da conta",
+            leadingIcon = { Icon(Icons.Filled.Email, contentDescription = null, tint = OrionColors.Outline) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            isError = error != null
+        )
+
+        VaultTextField(
+            value = password,
+            onValueChange = { password = it },
+            modifier = Modifier.fillMaxWidth(),
+            label = "Senha da conta",
+            leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null, tint = OrionColors.Outline) },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            textStyle = CodeTextStyle,
+            isError = error != null
+        )
+
+        error?.let {
+            Text(it, style = MaterialTheme.typography.labelSmall, color = OrionColors.Error)
+        }
+
+        Button(
+            onClick = { onSubmit(email.trim(), password.toCharArray()) },
+            enabled = !isLoading,
+            modifier = Modifier.fillMaxWidth().height(52.dp),
+            shape = MaterialTheme.shapes.small,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = OrionColors.SecondaryContainer,
+                contentColor = OrionColors.OnSecondaryContainer
+            )
+        ) {
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = OrionColors.OnSecondaryContainer
+                )
+            } else {
+                Text("Entrar", style = MaterialTheme.typography.titleMedium)
+            }
+        }
+
+        Box(modifier = Modifier.fillMaxWidth().clickable(enabled = !isLoading) { onBack() }) {
+            Text(
+                "Voltar",
+                style = MaterialTheme.typography.bodyMedium,
+                color = OrionColors.Primary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().padding(8.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun RestoreVaultSecretsStep(
+    error: String?,
+    isLoading: Boolean,
+    onSubmit: (CharArray, CharArray, String) -> Unit
+) {
+    var password by remember { mutableStateOf("") }
+    var confirm by remember { mutableStateOf("") }
+    var secretKey by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        InfoCard(
+            icon = Icons.Filled.EnhancedEncryption,
+            iconTint = OrionColors.Secondary,
+            title = "Restaurar cofre",
+            titleColor = OrionColors.Secondary,
+            description = "Digite a mesma Master Password e a Secret Key do dispositivo original. Só a combinação exata das duas reproduz a chave que decifra seus itens."
+        )
+
+        VaultTextField(
+            value = password,
+            onValueChange = { password = it },
+            modifier = Modifier.fillMaxWidth(),
+            label = "Master Password",
+            leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null, tint = OrionColors.Outline) },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            textStyle = CodeTextStyle,
+            isError = error != null
+        )
+
+        VaultTextField(
+            value = confirm,
+            onValueChange = { confirm = it },
+            modifier = Modifier.fillMaxWidth(),
+            label = "Confirmar Master Password",
+            leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null, tint = OrionColors.Outline) },
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            textStyle = CodeTextStyle,
+            isError = error != null
+        )
+
+        VaultTextField(
+            value = secretKey,
+            onValueChange = { secretKey = it },
+            modifier = Modifier.fillMaxWidth(),
+            label = "Secret Key",
+            placeholder = "A3F9-7C1D-...",
+            leadingIcon = { Icon(Icons.Filled.Key, contentDescription = null, tint = OrionColors.Outline) },
+            textStyle = CodeTextStyle,
+            isError = error != null
+        )
+
+        error?.let {
+            Text(it, style = MaterialTheme.typography.labelSmall, color = OrionColors.Error)
+        }
+
+        Button(
+            onClick = { onSubmit(password.toCharArray(), confirm.toCharArray(), secretKey) },
+            enabled = !isLoading,
+            modifier = Modifier.fillMaxWidth().height(52.dp),
+            shape = MaterialTheme.shapes.small,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = OrionColors.SecondaryContainer,
+                contentColor = OrionColors.OnSecondaryContainer
+            )
+        ) {
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = OrionColors.OnSecondaryContainer
+                )
+            } else {
+                Text("Restaurar cofre", style = MaterialTheme.typography.titleMedium)
+                Spacer(Modifier.width(8.dp))
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
+            }
         }
     }
 }

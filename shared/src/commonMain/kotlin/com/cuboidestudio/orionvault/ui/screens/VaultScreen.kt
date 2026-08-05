@@ -26,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.CreateNewFolder
 import androidx.compose.material.icons.filled.Folder
@@ -70,7 +71,8 @@ private const val TAB_FOLDERS = 1
 fun VaultScreen(
     viewModel: VaultViewModel,
     onOpenItem: (folderId: String?, itemId: String?) -> Unit,
-    onOpenFolder: (parentId: String?, folderId: String?) -> Unit
+    onOpenFolder: (parentId: String?, folderId: String?) -> Unit,
+    onOpenAccount: () -> Unit
 ) {
     val unfiledItems by viewModel.unfiledItems.collectAsState()
     val breadcrumb by viewModel.breadcrumb.collectAsState()
@@ -114,15 +116,24 @@ fun VaultScreen(
                     }
                     Text("OrionVault", style = MaterialTheme.typography.headlineMedium, color = OrionColors.Primary)
                 }
-                IconButton(onClick = {
-                    searchVisible = !searchVisible
-                    if (!searchVisible) query = ""
-                }) {
-                    Icon(
-                        if (searchVisible) Icons.Filled.Close else Icons.Filled.Search,
-                        contentDescription = "Buscar",
-                        tint = OrionColors.Primary
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = {
+                        searchVisible = !searchVisible
+                        if (!searchVisible) query = ""
+                    }) {
+                        Icon(
+                            if (searchVisible) Icons.Filled.Close else Icons.Filled.Search,
+                            contentDescription = "Buscar",
+                            tint = OrionColors.Primary
+                        )
+                    }
+                    IconButton(onClick = onOpenAccount) {
+                        Icon(
+                            Icons.Filled.CloudSync,
+                            contentDescription = "Conta e sincronização",
+                            tint = OrionColors.Primary
+                        )
+                    }
                 }
             }
 

@@ -7,13 +7,21 @@ import androidx.activity.enableEdgeToEdge
 import com.cuboidestudio.orionvault.storage.secure.PlatformContext
 
 class MainActivity : ComponentActivity() {
+    private lateinit var container: AppContainer
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        val container = AppContainer(PlatformContext(applicationContext))
+        container = AppContainer(PlatformContext(applicationContext))
         setContent {
             App(container)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Gatilho de sync ao trazer o app para o primeiro plano (plano, fase 5.1).
+        container.syncEngine.onAppForegrounded()
     }
 }
