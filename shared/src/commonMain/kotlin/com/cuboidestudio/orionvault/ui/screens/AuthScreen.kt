@@ -1,10 +1,10 @@
 package com.cuboidestudio.orionvault.ui.screens
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,15 +16,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,12 +34,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import com.cuboidestudio.orionvault.ui.components.GlassPanel
-import com.cuboidestudio.orionvault.ui.components.VaultTextField
-import com.cuboidestudio.orionvault.ui.components.VaultTopBar
-import com.cuboidestudio.orionvault.ui.theme.CodeTextStyle
-import com.cuboidestudio.orionvault.ui.theme.OrionColors
+import com.cuboidestudio.orionvault.ui.components.OrionButton
+import com.cuboidestudio.orionvault.ui.components.OrionButtonVariant
+import com.cuboidestudio.orionvault.ui.components.OrionScaffold
+import com.cuboidestudio.orionvault.ui.components.OrionSurface
+import com.cuboidestudio.orionvault.ui.components.OrionTextField
+import com.cuboidestudio.orionvault.ui.components.OrionTopBar
+import com.cuboidestudio.orionvault.ui.theme.OrionSizes
+import com.cuboidestudio.orionvault.ui.theme.OrionSpacing
 import com.cuboidestudio.orionvault.viewmodel.AuthMode
 import com.cuboidestudio.orionvault.viewmodel.AuthViewModel
 
@@ -66,94 +63,120 @@ fun AuthScreen(viewModel: AuthViewModel, onBack: () -> Unit, onAuthenticated: ()
         if (completed) onAuthenticated()
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(OrionColors.Background)) {
-        VaultTopBar(
-            leading = {
-                IconButton(onClick = onBack) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Voltar",
-                        tint = OrionColors.Primary
-                    )
-                }
-            },
-            title = if (isSignUp) "Criar conta" else "Entrar",
-            trailing = { Spacer(Modifier.size(48.dp)) }
-        )
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .widthIn(max = 480.dp)
-                .padding(horizontal = 24.dp, vertical = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+    OrionScaffold(
+        topBar = {
+            OrionTopBar(
+                title = if (isSignUp) "Criar conta" else "Entrar",
+                onBack = onBack,
+                showDivider = false
+            )
+        }
+    ) { padding ->
+        Box(
+            modifier = Modifier.fillMaxSize().padding(padding),
+            contentAlignment = Alignment.TopCenter
         ) {
-            GlassPanel(modifier = Modifier.fillMaxWidth(), padding = 20.dp) {
-                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                    Icon(
-                        Icons.Filled.CloudSync,
-                        contentDescription = null,
-                        tint = OrionColors.Secondary,
-                        modifier = Modifier.size(28.dp)
-                    )
+            Column(
+                modifier = Modifier
+                    .widthIn(max = OrionSizes.contentNarrow)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = OrionSpacing.screenH, vertical = OrionSpacing.lg),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                OrionSurface(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(OrionSpacing.sm)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.CloudSync,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier.size(OrionSizes.icon)
+                        )
+                        Text(
+                            text = "Sincronização na nuvem",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+
+                    Spacer(Modifier.height(OrionSpacing.xs))
+
                     Text(
-                        "Sincronize seu cofre entre dispositivos. Só o conteúdo já criptografado sai " +
-                            "deste aparelho — sua Master Password e sua Secret Key nunca são enviadas.",
+                        text = "Só o conteúdo já criptografado sai deste aparelho. Sua Master " +
+                            "Password e sua Secret Key nunca são enviadas.",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = OrionColors.OnSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    VaultTextField(
+                    Spacer(Modifier.height(OrionSpacing.lg))
+
+                    OrionTextField(
                         value = email,
                         onValueChange = { email = it },
                         modifier = Modifier.fillMaxWidth(),
                         label = "E-mail",
-                        leadingIcon = {
-                            Icon(Icons.Filled.Email, contentDescription = null, tint = OrionColors.Outline)
-                        },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                        isError = error != null
+                        leadingIcon = { Icon(Icons.Filled.Email, contentDescription = null) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
                     )
 
-                    VaultTextField(
+                    Spacer(Modifier.height(OrionSpacing.md))
+
+                    OrionTextField(
                         value = password,
                         onValueChange = { password = it },
                         modifier = Modifier.fillMaxWidth(),
                         label = "Senha da conta",
-                        leadingIcon = {
-                            Icon(Icons.Filled.Lock, contentDescription = null, tint = OrionColors.Outline)
-                        },
+                        mono = true,
+                        leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null) },
                         visualTransformation = PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        textStyle = CodeTextStyle,
-                        isError = error != null
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
                     )
 
-                    if (isSignUp) {
-                        VaultTextField(
-                            value = confirm,
-                            onValueChange = { confirm = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = "Confirmar senha",
-                            leadingIcon = {
-                                Icon(Icons.Filled.Lock, contentDescription = null, tint = OrionColors.Outline)
-                            },
-                            visualTransformation = PasswordVisualTransformation(),
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                            textStyle = CodeTextStyle,
-                            isError = error != null
-                        )
+                    AnimatedVisibility(visible = isSignUp) {
+                        Column {
+                            Spacer(Modifier.height(OrionSpacing.md))
+                            OrionTextField(
+                                value = confirm,
+                                onValueChange = { confirm = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = "Confirmar senha",
+                                mono = true,
+                                leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null) },
+                                visualTransformation = PasswordVisualTransformation(),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                            )
+                        }
                     }
 
-                    error?.let {
-                        Text(it, style = MaterialTheme.typography.labelSmall, color = OrionColors.Error)
-                    }
-                    info?.let {
-                        Text(it, style = MaterialTheme.typography.labelSmall, color = OrionColors.Secondary)
+                    AnimatedVisibility(visible = error != null) {
+                        Column {
+                            Spacer(Modifier.height(OrionSpacing.sm))
+                            Text(
+                                text = error.orEmpty(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
                     }
 
-                    Button(
+                    AnimatedVisibility(visible = info != null) {
+                        Column {
+                            Spacer(Modifier.height(OrionSpacing.sm))
+                            Text(
+                                text = info.orEmpty(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                    }
+
+                    Spacer(Modifier.height(OrionSpacing.lg))
+
+                    OrionButton(
+                        text = if (isSignUp) "Criar conta" else "Entrar",
                         onClick = {
                             viewModel.submit(
                                 email.trim(),
@@ -161,38 +184,29 @@ fun AuthScreen(viewModel: AuthViewModel, onBack: () -> Unit, onAuthenticated: ()
                                 if (isSignUp) confirm.toCharArray() else null
                             )
                         },
-                        enabled = !isLoading,
-                        modifier = Modifier.fillMaxWidth().height(52.dp),
-                        shape = MaterialTheme.shapes.small,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = OrionColors.SecondaryContainer,
-                            contentColor = OrionColors.OnSecondaryContainer
-                        )
-                    ) {
-                        if (isLoading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                color = OrionColors.OnSecondaryContainer
-                            )
-                        } else {
-                            Text(
-                                if (isSignUp) "Criar conta" else "Entrar",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        }
-                    }
+                        loading = isLoading,
+                        enabled = email.isNotBlank() && password.isNotEmpty(),
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
-            }
 
-            Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(OrionSpacing.md))
 
-            Box(modifier = Modifier.fillMaxWidth().clickable(enabled = !isLoading) { viewModel.toggleMode() }) {
+                OrionButton(
+                    text = if (isSignUp) "Já tenho conta? Entrar" else "Não tenho conta? Criar uma",
+                    onClick = viewModel::toggleMode,
+                    enabled = !isLoading,
+                    variant = OrionButtonVariant.Ghost,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(Modifier.height(OrionSpacing.md))
+
                 Text(
-                    if (isSignUp) "Já tem conta? Entrar" else "Não tem conta? Criar uma",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = OrionColors.Primary,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().padding(8.dp)
+                    text = "Esta conta serve apenas para transportar o cofre entre dispositivos.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
                 )
             }
         }

@@ -138,12 +138,38 @@ class VaultRepositoryImpl(
     }
 
     override suspend fun deleteFolder(id: String) {
+        deleteFolderRecursive(id)
+        onLocalChange()
+    }
+
+    /**
+     * Exclusão de pasta é em cascata: subpastas e itens dentro delas não podem sobrar
+     * apontando para um `parentId`/`folderId` de uma pasta já tombstoneada.
+     */
+    private fun deleteFolderRecursive(id: String) {
+        database.vaultQueries.selectFolderIdsByParent(id).executeAsList().forEach { childId ->
+            deleteFolderRecursive(childId)
+        }
+        database.vaultQueries.selectItemIdsByFolder(id).executeAsList().forEach { itemId ->
+            tombstoneItemRow(itemId)
+        }
+        tombstoneFolderRow(id)
+    }
+
+    private fun tombstoneFolderRow(id: String) {
         val current = database.vaultQueries.selectFolderById(id).executeAsOneOrNull() ?: return
         database.vaultQueries.tombstoneFolder(Clock.System.now().toEpochMilliseconds(), id)
         if (shouldPurgeImmediately(current.syncState)) {
             database.vaultQueries.purgeTombstoneFolder(id)
         }
-        onLocalChange()
+    }
+
+    private fun tombstoneItemRow(id: String) {
+        val current = database.vaultQueries.selectItemById(id).executeAsOneOrNull() ?: return
+        database.vaultQueries.tombstoneItem(Clock.System.now().toEpochMilliseconds(), id)
+        if (shouldPurgeImmediately(current.syncState)) {
+            database.vaultQueries.purgeTombstoneItem(id)
+        }
     }
 
     override suspend fun listItems(folderId: String?): List<VaultItem> {
@@ -232,11 +258,7 @@ class VaultRepositoryImpl(
     }
 
     override suspend fun deleteItem(id: String) {
-        val current = database.vaultQueries.selectItemById(id).executeAsOneOrNull() ?: return
-        database.vaultQueries.tombstoneItem(Clock.System.now().toEpochMilliseconds(), id)
-        if (shouldPurgeImmediately(current.syncState)) {
-            database.vaultQueries.purgeTombstoneItem(id)
-        }
+        tombstoneItemRow(id)
         onLocalChange()
     }
 

@@ -1,156 +1,223 @@
 ---
 name: OrionVault
+theme: dark-only
 colors:
-  surface: '#0b1326'
-  surface-dim: '#0b1326'
-  surface-bright: '#31394d'
-  surface-container-lowest: '#060e20'
-  surface-container-low: '#131b2e'
-  surface-container: '#171f33'
-  surface-container-high: '#222a3d'
-  surface-container-highest: '#2d3449'
-  on-surface: '#dae2fd'
-  on-surface-variant: '#c7c4d7'
-  inverse-surface: '#dae2fd'
-  inverse-on-surface: '#283044'
-  outline: '#908fa0'
-  outline-variant: '#464554'
-  surface-tint: '#c0c1ff'
-  primary: '#c0c1ff'
-  on-primary: '#1000a9'
-  primary-container: '#8083ff'
-  on-primary-container: '#0d0096'
-  inverse-primary: '#494bd6'
-  secondary: '#4edea3'
-  on-secondary: '#003824'
-  secondary-container: '#00a572'
-  on-secondary-container: '#00311f'
-  tertiary: '#ffb783'
-  on-tertiary: '#4f2500'
-  tertiary-container: '#d97721'
-  on-tertiary-container: '#452000'
-  error: '#ffb4ab'
-  on-error: '#690005'
-  error-container: '#93000a'
-  on-error-container: '#ffdad6'
-  primary-fixed: '#e1e0ff'
-  primary-fixed-dim: '#c0c1ff'
-  on-primary-fixed: '#07006c'
-  on-primary-fixed-variant: '#2f2ebe'
-  secondary-fixed: '#6ffbbe'
-  secondary-fixed-dim: '#4edea3'
-  on-secondary-fixed: '#002113'
-  on-secondary-fixed-variant: '#005236'
-  tertiary-fixed: '#ffdcc5'
-  tertiary-fixed-dim: '#ffb783'
-  on-tertiary-fixed: '#301400'
-  on-tertiary-fixed-variant: '#703700'
-  background: '#0b1326'
-  on-background: '#dae2fd'
-  surface-variant: '#2d3449'
+  background: '#0a0a0f'
+  surface: '#0a0a0f'
+  surface-dim: '#0a0a0f'
+  surface-bright: '#2c2c3b'
+  surface-container-lowest: '#070709'
+  surface-container-low: '#101017'
+  surface-container: '#12121a'
+  surface-container-high: '#1b1b26'
+  surface-container-highest: '#242432'
+  surface-variant: '#242432'
+  on-background: '#f4f4f7'
+  on-surface: '#f4f4f7'
+  on-surface-variant: '#a1a1b5'
+  text-muted: '#6e6e85'
+  outline: '#3a3a4a'
+  outline-variant: '#26262f'
+  surface-tint: '#a78bfa'
+  primary: '#a78bfa'
+  on-primary: '#21103f'
+  primary-container: '#6d46f2'
+  on-primary-container: '#ffffff'
+  inverse-primary: '#5b34d6'
+  secondary: '#34d399'
+  on-secondary: '#04291c'
+  secondary-container: '#0e4535'
+  on-secondary-container: '#6ee7b7'
+  tertiary: '#fbbf24'
+  on-tertiary: '#2e1f00'
+  tertiary-container: '#4a3306'
+  on-tertiary-container: '#fde68a'
+  error: '#f87171'
+  on-error: '#2e0a0a'
+  error-container: '#4c1414'
+  on-error-container: '#fca5a5'
+  inverse-surface: '#f4f4f7'
+  inverse-on-surface: '#12121a'
+  scrim: '#000000'
 typography:
-  headline-lg:
-    fontFamily: Inter
-    fontSize: 32px
+  display-lg:
+    fontFamily: IBM Plex Sans
+    fontSize: 40px
     fontWeight: '700'
-    lineHeight: 40px
+    lineHeight: 48px
+    letterSpacing: -0.03em
+  headline-lg:
+    fontFamily: IBM Plex Sans
+    fontSize: 30px
+    fontWeight: '700'
+    lineHeight: 38px
     letterSpacing: -0.02em
   headline-md:
-    fontFamily: Inter
+    fontFamily: IBM Plex Sans
     fontSize: 24px
     fontWeight: '600'
     lineHeight: 32px
+    letterSpacing: -0.015em
+  title-lg:
+    fontFamily: IBM Plex Sans
+    fontSize: 18px
+    fontWeight: '600'
+    lineHeight: 26px
     letterSpacing: -0.01em
   body-lg:
-    fontFamily: Inter
+    fontFamily: IBM Plex Sans
     fontSize: 16px
     fontWeight: '400'
     lineHeight: 24px
   body-md:
-    fontFamily: Inter
+    fontFamily: IBM Plex Sans
     fontSize: 14px
     fontWeight: '400'
-    lineHeight: 20px
+    lineHeight: 21px
+  label-sm:
+    fontFamily: IBM Plex Sans
+    fontSize: 12px
+    fontWeight: '600'
+    lineHeight: 16px
+    letterSpacing: 0.06em
   code-md:
     fontFamily: JetBrains Mono
     fontSize: 14px
     fontWeight: '500'
     lineHeight: 20px
     letterSpacing: 0.02em
-  label-sm:
-    fontFamily: Inter
-    fontSize: 12px
-    fontWeight: '600'
-    lineHeight: 16px
+  code-lg:
+    fontFamily: JetBrains Mono
+    fontSize: 18px
+    fontWeight: '500'
+    lineHeight: 30px
+    letterSpacing: 0.08em
 rounded:
-  sm: 0.25rem
-  DEFAULT: 0.5rem
-  md: 0.75rem
-  lg: 1rem
-  xl: 1.5rem
+  input: 10px
+  button: 12px
+  card: 14px
+  card-lg: 18px
+  dialog: 24px
   full: 9999px
 spacing:
-  base: 4px
+  xxs: 4px
   xs: 8px
   sm: 12px
   md: 16px
   lg: 24px
   xl: 32px
-  gutter: 20px
-  margin-mobile: 16px
-  margin-desktop: 40px
+  xxl: 48px
+  screen-margin: 20px
 ---
 
-## Brand & Style
-The design system for this product is centered on the "Digital Vault" concept—a high-security environment that feels impenetrable yet technologically advanced. The brand personality is authoritative, precise, and sophisticated.
+> Este documento descreve o sistema **em vigor no código**. A implementação vive em
+> `shared/src/commonMain/kotlin/com/cuboidestudio/orionvault/ui/theme/` (tokens) e
+> `.../ui/components/` (biblioteca). Se algo aqui divergir do código, o código é a verdade —
+> atualize este arquivo.
 
-The visual style blends **Modern Corporate** reliability with **Glassmorphism** and **Minimalist** precision. It utilizes deep, dark surfaces to minimize eye strain and emphasize the "void-like" security of the vault. To convey encryption and active protection, the system uses subtle inner glows and translucent layers that suggest depth without sacrificing the perception of structural integrity.
+## Marca e estilo
 
-## Colors
-This design system defaults to a **Dark Mode** experience to reinforce the feeling of a secure, private terminal.
+O conceito é o **Cofre Digital**: um ambiente de alta segurança que parece impenetrável e ao mesmo
+tempo tecnologicamente avançado. A personalidade é autoritativa, precisa e sofisticada.
 
-- **Primary (Indigo):** Used for high-priority actions, brand moments, and focus states. It represents the "intelligence" of the vault.
-- **Secondary (Emerald):** Reserved strictly for "Secure," "Active," "Verified," and "Success" states. This color is the primary indicator of safety.
-- **Neutral (Midnight Gray):** The foundation of the UI. Backgrounds use the deepest value, while surface containers use lighter steps to create hierarchy.
-- **Accent/Alert:** A high-visibility Red (#EF4444) should be used sparingly for "Insecure," "Breached," or "Delete" actions.
+O canvas é um **preto neutro** (`#0A0A0F`), não um azul-marinho escuro. Essa foi a mudança mais
+consequente da reformulação: um fundo neutro faz as cores de acento "acenderem" em vez de competirem
+com o matiz do fundo. Sobre ele, profundidade vem de **camadas tonais e vidro**, nunca de sombras
+pesadas.
 
-## Typography
-The typography system prioritizes legibility and technical clarity. **Inter** is the workhorse for all interface elements, providing a neutral and modern feel.
+## Cores
 
-For sensitive data—such as passwords, recovery keys, and 2FA codes—**JetBrains Mono** is utilized. The monospaced nature of the font ensures that ambiguous characters (like '0' vs 'O' or '1' vs 'l') are easily distinguishable, reducing user error during manual entry.
+Dark-only por decisão de produto — não existe conjunto de tokens claros, e adicionar um exigiria
+uma segunda paleta completa.
 
-Headlines should be kept compact with slight negative letter-spacing to feel "locked-in" and sturdy.
+- **Primária (Violeta).** `#A78BFA` para ícones, links, foco e momentos de marca sobre o canvas
+  (7.2:1). O preenchimento de botão é mais escuro, `#6D46F2 → #5B34D6` em gradiente, com texto
+  branco (5.5–6.5:1). Essa separação existe por contraste: o violeta claro com texto claro por cima
+  media 3.7:1, abaixo do mínimo AA.
+- **Secundária (Esmeralda).** `#34D399`, reservada **estritamente** a "seguro", "verificado",
+  "copiado" e força de senha alta. Nunca decorativa — se o verde aparece, significa algo.
+- **Terciária (Âmbar).** `#FBBF24` para avisos e força de senha média.
+- **Erro (Vermelho).** `#F87171` para destrutivo, violado e inseguro.
+- **Neutros.** Rampa de containers de `#070709` (fundo de input, mais escuro que o pai) até
+  `#2C2C3B`, criando hierarquia sem sombra.
 
-## Layout & Spacing
-The layout follows a **Fluid Grid** model with strict 4px increments. This creates a rhythmic, systematic feel that aligns with the software's mathematical nature.
+Texto: `#F4F4F7` primário (18:1), `#A1A1B5` secundário (8.6:1), `#6E6E85` de apoio (4.2:1 — só para
+texto grande ou não essencial).
 
-- **Desktop:** 12-column grid with a maximum content width of 1280px. Use 24px gutters.
-- **Mobile:** Single column with 16px side margins.
+## Tipografia
 
-Large sections should be separated by clear, 1px borders rather than wide gaps to maintain a sense of "enclosure" within the vault. Padding within cards should be generous (24px) to ensure data doesn't feel cramped or "leaking" out of its container.
+**IBM Plex Sans** para toda a interface e **JetBrains Mono** para dados sensíveis. Ambas empacotadas
+em `shared/src/commonMain/composeResources/font/` (licença OFL; textos em `docs/licenses/`).
 
-## Elevation & Depth
-In this design system, depth is achieved through **Tonal Layers** and **Glassmorphism** rather than traditional heavy shadows.
+A escolha foi feita por **desambiguação de caracteres**, não por estética. Em Plex Sans o `l`
+minúsculo tem cauda curva, o `I` maiúsculo é barra reta e o `1` tem base — impossível confundir. Em
+JetBrains Mono o zero é cortado e os caracteres são largos. Num cofre de senhas isso é funcional: é
+a diferença entre transcrever uma Secret Key certa ou errada.
 
-1.  **Level 0 (Background):** The deepest Midnight Gray (#0F172A).
-2.  **Level 1 (Panels):** Raised surface (#1E293B) with a subtle 1px border (#334155).
-3.  **Level 2 (Modals/Popovers):** Semi-transparent surfaces using a backdrop blur (20px) and a faint inner glow (top-down) to simulate thick, protective glass.
+O estilo `code-lg` existe só para a exibição única da Secret Key no onboarding, com tracking bem
+aberto, porque é o texto que o usuário vai copiar à mão para um papel.
 
-Shadows, when used, are colored (tinted with the background) and extremely diffused, creating an "ambient glow" rather than a hard drop shadow.
+Headlines levam tracking negativo para ficarem compactas e "travadas".
 
-## Shapes
-The shape language balances approachability with structural discipline.
+## Layout e espaçamento
 
-- **Containers & Cards:** Use a consistent 12px radius (`rounded-lg`).
-- **Buttons & Inputs:** Use a 8px radius (`rounded-md`) to feel slightly more precise and mechanical.
-- **Badges:** Use a fully rounded pill shape to distinguish them from interactive buttons.
+Escala de 4px, exposta em `OrionSpacing`. Margem lateral de tela: 20px.
 
-Decorative elements, such as encryption progress bars, should use sharp inner corners and slightly rounded outer corners to mimic machined hardware.
+Larguras máximas de coluna (`OrionSizes`), com o conteúdo centralizado acima delas:
+`contentNarrow 420dp` (unlock, onboarding, pastas), `contentForm 560dp` (editor de item, sync),
+`contentWide 960dp` (listas do cofre).
 
-## Components
+A grade de pastas é adaptativa (`GridCells.Adaptive(168dp)`) — o número de colunas sai da largura
+disponível, sem breakpoints escritos à mão.
 
-- **Buttons:** Primary buttons use a solid Deep Purple fill with high-contrast white text. Secondary buttons use a "Ghost" style with a 1px border and subtle hover glow.
-- **Input Fields:** Backgrounds should be slightly darker than their parent container. On focus, the border transitions to Primary Indigo with a soft outer glow. Use monospaced font for password fields.
-- **Security Badges:** Small, pill-shaped indicators. "Secure" badges feature the Emerald Green color and a minimalist shield icon. "Insecure" badges use Red and an alert icon.
-- **Vault Cards:** These house individual credentials. They must feature a prominent icon (company logo or generic key) and a "Copy" quick-action button that provides immediate visual feedback (color change to Emerald) when clicked.
-- **Biometric Prompts:** Full-screen or centered overlays using heavy backdrop blur and a large, centered biometric icon (FaceID/Fingerprint) with a pulsing "Scanning" animation.
+## Elevação e profundidade
+
+Profundidade vem de **camadas tonais e vidro**, não de sombra.
+
+1. **Nível 0 — Canvas.** `#0A0A0F` com dois halos radiais que derivam lentamente (violeta no topo à
+   esquerda, esmeralda embaixo à direita, ciclo de 22s). Implementado em `OrionBackground`, com raio
+   derivado do tamanho real da tela.
+2. **Nível 1 — Painéis.** `OrionSurface`: preenchimento em gradiente vertical (`#1A1A26 → #121219`)
+   e borda hairline também em gradiente (branco 12% no topo → 4% na base), simulando luz batendo na
+   quina superior do vidro.
+3. **Nível 2 — Diálogos.** `surface-container-high` com raio de 24px.
+
+Desfoque de fundo real (`backdrop-filter`) **não é usado**: não é portável entre os alvos do Compose
+Multiplatform. A profundidade é aproximada com gradiente e borda.
+
+## Formas
+
+- Inputs: 10px · Botões: 12px · Cards: 14px · Cards grandes: 18px · Diálogos: 24px · Badges: pílula.
+- O medidor de força de senha usa cantos externos arredondados e internos retos — o detalhe de
+  "hardware usinado" para barras de progresso.
+
+## Movimento
+
+`OrionMotion` define o vocabulário: 150ms (rápido), 250ms (médio), 400ms (lento), com easing
+enfatizado, mais o ciclo ambiente de 22s.
+
+Onde há movimento: transição entre rotas (deslize + fade, direção pela profundidade da rota),
+entrada e reordenação de itens de lista, escala de 0.97–0.985 no toque de botões e cards, anel de
+foco dos campos, cor e preenchimento do medidor de senha, ícone de sync girando, respiração do
+cadeado no unlock, indicador de passo do onboarding.
+
+## Componentes
+
+Tudo em `.../ui/components/`. Nada de `Box + clickable` avulso: se precisa de um botão, use
+`OrionButton`.
+
+- **`OrionButton`** — variantes `Primary` (gradiente violeta), `Secondary` (sólido discreto),
+  `Ghost` (só contorno), `Destructive` (contorno vermelho; nunca preenchido, para não convidar ao
+  clique). Suporta ícone, estado de carregamento e desabilitado.
+- **`OrionTextField`** — rótulo acima do campo, fundo mais escuro que o pai, anel de foco violeta
+  animado, slot de erro animado, e flag `mono` para senhas e chaves.
+- **`OrionSurface`** — o card de vidro. **`OrionBackground`** — o canvas ambiente.
+- **`OrionScaffold` / `OrionTopBar` / `OrionLargeTopBar`** — estrutura de tela com insets de sistema
+  tratados e containers transparentes.
+- **`SecurityBadge`** — pílula `Secure` (esmeralda, escudo) / `Warning` (âmbar) / `Danger`
+  (vermelho).
+- **`ItemAvatar`** — inicial sobre gradiente determinístico pelo título, para reencontrar
+  credenciais de relance numa lista longa.
+- **`PasswordStrengthMeter`** — quatro segmentos com cor interpolada.
+- **`OrionEmptyState`**, **`OrionSectionHeader`**, **`OrionDialog`** — estados vazios, cabeçalhos de
+  seção em caixa alta e confirmações (toda ação destrutiva passa por uma).

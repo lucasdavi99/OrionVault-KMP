@@ -56,6 +56,9 @@ SELECT * FROM Folder WHERE id = ?;
 countFolderChildren:
 SELECT COUNT(*) FROM Folder WHERE parentId = ? AND syncState != 3;
 
+selectFolderIdsByParent:
+SELECT id FROM Folder WHERE parentId = ? AND syncState != 3;
+
 insertFolder:
 INSERT INTO Folder (id, parentId, name, createdAt, updatedAt, version, syncState, syncedVersion)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?);
@@ -90,6 +93,9 @@ SELECT * FROM Item WHERE syncState != 3 AND ((folderId IS NULL AND :folderId IS 
 
 selectItemById:
 SELECT * FROM Item WHERE id = ?;
+
+selectItemIdsByFolder:
+SELECT id FROM Item WHERE folderId = ? AND syncState != 3;
 
 insertItem:
 INSERT INTO Item (id, folderId, title, usernameCipher, emailCipher, passwordCipher, urlCipher, notesCipher, createdAt, updatedAt, version, syncState, syncedVersion)

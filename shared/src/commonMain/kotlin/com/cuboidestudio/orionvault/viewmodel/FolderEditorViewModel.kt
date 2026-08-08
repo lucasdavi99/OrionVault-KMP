@@ -20,7 +20,19 @@ class FolderEditorViewModel(
     private val _saved = MutableStateFlow(false)
     val saved: StateFlow<Boolean> = _saved.asStateFlow()
 
+    private val _folderName = MutableStateFlow<String?>(null)
+    val folderName: StateFlow<String?> = _folderName.asStateFlow()
+
     val isEditing: Boolean get() = folderId != null
+
+    init {
+        if (folderId != null) {
+            viewModelScope.launch {
+                _folderName.value = container.vaultRepository.listAllFolders()
+                    .firstOrNull { it.id == folderId }?.name
+            }
+        }
+    }
 
     fun save(name: String) {
         if (name.isBlank()) {
@@ -40,6 +52,15 @@ class FolderEditorViewModel(
             } catch (e: FolderDepthExceededException) {
                 _errorMessage.value = e.message
             }
+        }
+    }
+
+    fun delete() {
+        val id = folderId ?: return
+        viewModelScope.launch {
+            container.sessionManager.recordActivity()
+            container.vaultRepository.deleteFolder(id)
+            _saved.value = true
         }
     }
 }

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Tema de lançamento escuro.
+
+      O manifest apontava para @android:style/Theme.Material.Light.NoActionBar, um tema CLARO do
+      framework. Como o app é dark-only, isso produzia um flash branco na abertura a frio, antes de o
+      Compose desenhar o primeiro frame. O windowBackground aqui é o mesmo canvas do tema Compose,
+      então a transição fica invisível.
+    -->
+    <style name="Theme.OrionVault" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/orion_canvas</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+    </style>
+</resources>

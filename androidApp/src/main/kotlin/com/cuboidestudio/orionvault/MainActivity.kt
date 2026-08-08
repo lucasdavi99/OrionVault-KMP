@@ -1,7 +1,9 @@
 package com.cuboidestudio.orionvault
 
+import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.cuboidestudio.orionvault.storage.secure.PlatformContext
@@ -10,7 +12,13 @@ class MainActivity : ComponentActivity() {
     private lateinit var container: AppContainer
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
+        // Sem argumentos, enableEdgeToEdge decide o contraste dos ícones das barras pelo tema DO
+        // SISTEMA. Como o app é dark-only, num aparelho em modo claro os ícones ficavam escuros
+        // sobre o fundo escuro do cofre. Forçar o estilo escuro mantém os ícones claros sempre.
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT)
+        )
         super.onCreate(savedInstanceState)
 
         container = AppContainer(PlatformContext(applicationContext))

@@ -1,7 +1,13 @@
 package com.cuboidestudio.orionvault.ui.screens
 
-import androidx.compose.foundation.background
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,32 +20,36 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.cuboidestudio.orionvault.session.AccountState
 import com.cuboidestudio.orionvault.sync.SyncConflict
 import com.cuboidestudio.orionvault.sync.SyncStatus
-import com.cuboidestudio.orionvault.ui.components.GlassPanel
-import com.cuboidestudio.orionvault.ui.components.VaultTopBar
-import com.cuboidestudio.orionvault.ui.theme.OrionColors
+import com.cuboidestudio.orionvault.ui.components.OrionButton
+import com.cuboidestudio.orionvault.ui.components.OrionButtonSize
+import com.cuboidestudio.orionvault.ui.components.OrionButtonVariant
+import com.cuboidestudio.orionvault.ui.components.OrionScaffold
+import com.cuboidestudio.orionvault.ui.components.OrionSectionHeader
+import com.cuboidestudio.orionvault.ui.components.OrionSurface
+import com.cuboidestudio.orionvault.ui.components.OrionTopBar
+import com.cuboidestudio.orionvault.ui.components.SecurityBadge
+import com.cuboidestudio.orionvault.ui.components.SecurityLevel
+import com.cuboidestudio.orionvault.ui.theme.OrionSizes
+import com.cuboidestudio.orionvault.ui.theme.OrionSpacing
 import com.cuboidestudio.orionvault.viewmodel.SyncSettingsViewModel
 
 @Composable
@@ -54,131 +64,202 @@ fun SyncSettingsScreen(viewModel: SyncSettingsViewModel, onBack: () -> Unit, onL
         if (loggedOut) onLoggedOut()
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(OrionColors.Background)) {
-        VaultTopBar(
-            leading = {
-                IconButton(onClick = onBack) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Voltar",
-                        tint = OrionColors.Primary
-                    )
-                }
-            },
-            title = "Sincronização",
-            trailing = { Spacer(Modifier.size(48.dp)) }
-        )
+    val isSyncing = status == SyncStatus.Syncing
+    val isLoggedIn = account is AccountState.LoggedIn
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .widthIn(max = 640.dp)
-                .padding(horizontal = 24.dp, vertical = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+    OrionScaffold(
+        topBar = { OrionTopBar(title = "Sincronização", onBack = onBack, showDivider = false) }
+    ) { padding ->
+        Box(
+            modifier = Modifier.fillMaxSize().padding(padding),
+            contentAlignment = Alignment.TopCenter
         ) {
-            GlassPanel(modifier = Modifier.fillMaxWidth(), padding = 20.dp) {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(
+                modifier = Modifier
+                    .widthIn(max = OrionSizes.contentForm)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = OrionSpacing.screenH, vertical = OrionSpacing.lg),
+                verticalArrangement = Arrangement.spacedBy(OrionSpacing.md)
+            ) {
+                OrionSurface(modifier = Modifier.fillMaxWidth()) {
                     Row(
+                        modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(OrionSpacing.sm)
                     ) {
-                        Icon(
-                            if (status is SyncStatus.Error) Icons.Filled.Warning else Icons.Filled.CloudDone,
-                            contentDescription = null,
-                            tint = if (status is SyncStatus.Error) OrionColors.Error else OrionColors.Secondary
-                        )
-                        Text(
-                            (account as? AccountState.LoggedIn)?.email ?: "Não conectado",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = OrionColors.OnSurface
-                        )
-                    }
-
-                    Text(
-                        when (val current = status) {
-                            SyncStatus.Idle -> lastSyncedAt?.let { "Última sincronização: $it" }
-                                ?: "Nenhuma sincronização ainda"
-
-                            SyncStatus.Syncing -> "Sincronizando..."
-                            is SyncStatus.Error -> current.message
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = if (status is SyncStatus.Error) OrionColors.Error else OrionColors.OnSurfaceVariant
-                    )
-
-                    Button(
-                        onClick = viewModel::syncNow,
-                        enabled = status != SyncStatus.Syncing && account is AccountState.LoggedIn,
-                        modifier = Modifier.fillMaxWidth().height(48.dp),
-                        shape = MaterialTheme.shapes.small,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = OrionColors.SecondaryContainer,
-                            contentColor = OrionColors.OnSecondaryContainer
-                        )
-                    ) {
-                        if (status == SyncStatus.Syncing) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                color = OrionColors.OnSecondaryContainer
+                        SyncStatusIcon(status = status, syncing = isSyncing)
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = (account as? AccountState.LoggedIn)?.email ?: "Não conectado",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
-                        } else {
-                            Icon(Icons.Filled.CloudSync, contentDescription = null)
-                            Spacer(Modifier.size(8.dp))
-                            Text("Sincronizar agora", style = MaterialTheme.typography.titleMedium)
+                            Spacer(Modifier.height(OrionSpacing.xxs))
+                            Text(
+                                text = when (val current = status) {
+                                    SyncStatus.Idle -> lastSyncedAt?.let { "Última sincronização: $it" }
+                                        ?: "Nenhuma sincronização ainda"
+
+                                    SyncStatus.Syncing -> "Sincronizando..."
+                                    is SyncStatus.Error -> current.message
+                                },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (status is SyncStatus.Error) {
+                                    MaterialTheme.colorScheme.error
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                }
+                            )
                         }
                     }
 
-                    TextButton(onClick = viewModel::logout, modifier = Modifier.fillMaxWidth()) {
-                        Text("Sair da conta", style = MaterialTheme.typography.labelSmall, color = OrionColors.Error)
-                    }
+                    Spacer(Modifier.height(OrionSpacing.lg))
+
+                    OrionButton(
+                        text = "Sincronizar agora",
+                        onClick = viewModel::syncNow,
+                        icon = Icons.Filled.CloudSync,
+                        loading = isSyncing,
+                        enabled = !isSyncing && isLoggedIn,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(Modifier.height(OrionSpacing.xs))
+
+                    OrionButton(
+                        text = "Sair da conta",
+                        onClick = viewModel::logout,
+                        icon = Icons.AutoMirrored.Filled.Logout,
+                        variant = OrionButtonVariant.Destructive,
+                        enabled = isLoggedIn,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(Modifier.height(OrionSpacing.sm))
 
                     Text(
-                        "Sair da conta encerra apenas a sincronização em nuvem. Seu cofre local " +
+                        text = "Sair encerra apenas a sincronização em nuvem. Seu cofre local " +
                             "continua intacto e destravado.",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = OrionColors.Outline
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-            }
 
-            if (conflicts.isNotEmpty()) {
-                Text(
-                    "CONFLITOS",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = OrionColors.OnSurfaceVariant,
-                    fontWeight = FontWeight.Bold
-                )
-                conflicts.forEach { conflict ->
-                    ConflictRow(
-                        conflict = conflict,
-                        onKeepLocal = { viewModel.keepLocal(conflict) },
-                        onKeepRemote = { viewModel.keepRemote(conflict) }
+                OrionSurface(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(OrionSpacing.sm)
+                    ) {
+                        SecurityBadge(text = "Conhecimento zero", level = SecurityLevel.Secure)
+                    }
+                    Spacer(Modifier.height(OrionSpacing.xs))
+                    Text(
+                        text = "O servidor guarda apenas texto cifrado. Nem sua Master Password nem " +
+                            "sua Secret Key saem deste dispositivo, então ninguém além de você " +
+                            "consegue abrir o conteúdo sincronizado.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
+
+                if (conflicts.isNotEmpty()) {
+                    OrionSectionHeader("Conflitos")
+                    Text(
+                        text = "Estes itens mudaram em mais de um dispositivo. Escolha qual versão manter.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    conflicts.forEach { conflict ->
+                        ConflictCard(
+                            conflict = conflict,
+                            onKeepLocal = { viewModel.keepLocal(conflict) },
+                            onKeepRemote = { viewModel.keepRemote(conflict) }
+                        )
+                    }
                 }
             }
         }
     }
 }
 
+/** Ícone de status: gira continuamente enquanto sincroniza, para o estado ser lido de relance. */
 @Composable
-private fun ConflictRow(conflict: SyncConflict, onKeepLocal: () -> Unit, onKeepRemote: () -> Unit) {
-    GlassPanel(modifier = Modifier.fillMaxWidth(), padding = 16.dp) {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(conflict.title, style = MaterialTheme.typography.titleMedium, color = OrionColors.OnSurface)
-            Text(
-                "Este dispositivo: ${conflict.localUpdatedAt} · Outro dispositivo: ${conflict.remoteUpdatedAt}",
-                style = MaterialTheme.typography.labelSmall,
-                color = OrionColors.OnSurfaceVariant
+private fun SyncStatusIcon(status: SyncStatus, syncing: Boolean) {
+    val transition = rememberInfiniteTransition(label = "syncSpin")
+    val angle by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1400, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "spin"
+    )
+
+    val isError = status is SyncStatus.Error
+    val icon = when {
+        isError -> Icons.Filled.Warning
+        syncing -> Icons.Filled.CloudSync
+        else -> Icons.Filled.CloudDone
+    }
+
+    Icon(
+        imageVector = icon,
+        contentDescription = null,
+        tint = when {
+            isError -> MaterialTheme.colorScheme.error
+            syncing -> MaterialTheme.colorScheme.primary
+            else -> MaterialTheme.colorScheme.secondary
+        },
+        modifier = Modifier
+            .size(28.dp)
+            .graphicsLayer { rotationZ = if (syncing) angle else 0f }
+    )
+}
+
+@Composable
+private fun ConflictCard(
+    conflict: SyncConflict,
+    onKeepLocal: () -> Unit,
+    onKeepRemote: () -> Unit
+) {
+    OrionSurface(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = conflict.title,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        Spacer(Modifier.height(OrionSpacing.xxs))
+
+        Text(
+            text = "Este aparelho: ${conflict.localUpdatedAt}  ·  Outro: ${conflict.remoteUpdatedAt}",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        Spacer(Modifier.height(OrionSpacing.sm))
+
+        Row(horizontalArrangement = Arrangement.spacedBy(OrionSpacing.xs)) {
+            OrionButton(
+                text = "Manter deste",
+                onClick = onKeepLocal,
+                variant = OrionButtonVariant.Secondary,
+                size = OrionButtonSize.Medium,
+                modifier = Modifier.weight(1f)
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = onKeepLocal) {
-                    Text("Manter deste aparelho", style = MaterialTheme.typography.labelSmall, color = OrionColors.Primary)
-                }
-                TextButton(onClick = onKeepRemote) {
-                    Text("Manter do outro", style = MaterialTheme.typography.labelSmall, color = OrionColors.Secondary)
-                }
-            }
+            OrionButton(
+                text = "Manter do outro",
+                onClick = onKeepRemote,
+                variant = OrionButtonVariant.Ghost,
+                size = OrionButtonSize.Medium,
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }

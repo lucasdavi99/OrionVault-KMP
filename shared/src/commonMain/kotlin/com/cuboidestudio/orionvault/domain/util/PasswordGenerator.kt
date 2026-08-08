@@ -18,10 +18,10 @@ object PasswordGenerator {
         val lengthScore = (password.length.coerceAtMost(24) / 24f)
         val score = (lengthScore * 0.6f + (variety / 4f) * 0.4f).coerceIn(0f, 1f)
         val label = when {
-            score < 0.35f -> "Weak"
-            score < 0.6f -> "Fair"
-            score < 0.85f -> "Strong Security"
-            else -> "Excellent Security"
+            score < 0.35f -> "Fraca"
+            score < 0.6f -> "Razoável"
+            score < 0.85f -> "Forte"
+            else -> "Excelente"
         }
         return score to label
     }

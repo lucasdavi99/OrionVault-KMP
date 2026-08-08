@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Canvas do app (OrionColors.Canvas). Usado pelo ícone e pelo windowBackground de lançamento. -->
+    <color name="orion_canvas">#0A0A0F</color>
+    <color name="ic_launcher_background">#0A0A0F</color>
+</resources>

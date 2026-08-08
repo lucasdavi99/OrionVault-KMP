@@ -367,6 +367,31 @@ class VaultRepositoryImplTest {
         assertTrue(repo.listAllFolders().isEmpty())
     }
 
+    /**
+     * Antes da correção, `deleteFolder` só tombstoneava a própria pasta: subpastas e itens dentro
+     * dela ficavam órfãos localmente (invisíveis na listagem) mas nunca eram marcados como sujos/
+     * tombstone, então nunca eram enviados ao servidor — o item "ressuscitava" na nuvem para sempre.
+     */
+    @Test
+    fun deleteFolderCascadesToDescendantSubfoldersAndItems() = runTest {
+        ensureLibsodiumInitialized()
+        val repo = newRepository()
+        repo.createVault("correct horse".toCharArray())
+
+        val root = repo.createFolder(null, "Trabalho")
+        val child = repo.createFolder(root.id, "Projetos")
+        val rootItem = repo.createItem(root.id, "Gmail", null, null, "s3cr3t", null, null)
+        val childItem = repo.createItem(child.id, "AWS", null, null, "s3cr3t", null, null)
+
+        repo.deleteFolder(root.id)
+
+        assertNull(database.vaultQueries.selectFolderById(root.id).executeAsOneOrNull())
+        assertNull(database.vaultQueries.selectFolderById(child.id).executeAsOneOrNull())
+        assertNull(database.vaultQueries.selectItemById(rootItem.id).executeAsOneOrNull())
+        assertNull(database.vaultQueries.selectItemById(childItem.id).executeAsOneOrNull())
+        assertTrue(repo.listAllFolders().isEmpty())
+    }
+
     @Test
     fun syncCursorAndDeviceIdRoundTrip() = runTest {
         ensureLibsodiumInitialized()

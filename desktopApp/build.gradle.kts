@@ -1,4 +1,5 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import java.io.File
 
 plugins {
     alias(libs.plugins.kotlinJvm)
@@ -23,6 +24,17 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "com.cuboidestudio.orionvault"
             packageVersion = "1.0.0"
+
+            val iconsDir = File(projectDir, "src/main/resources/icons")
+            macOS {
+                iconFile.set(File(iconsDir, "app_icon.icns"))
+            }
+            windows {
+                iconFile.set(File(iconsDir, "app_icon.ico"))
+            }
+            linux {
+                iconFile.set(File(iconsDir, "app_icon.png"))
+            }
         }
     }
 }

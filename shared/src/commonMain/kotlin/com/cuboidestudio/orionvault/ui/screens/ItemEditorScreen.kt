@@ -1,23 +1,32 @@
 package com.cuboidestudio.orionvault.ui.screens
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Notes
@@ -28,18 +37,18 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.EnhancedEncryption
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderOff
+import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -49,27 +58,57 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.cuboidestudio.orionvault.domain.model.VaultFolder
 import com.cuboidestudio.orionvault.domain.util.PasswordGenerator
-import com.cuboidestudio.orionvault.ui.components.GlassPanel
-import com.cuboidestudio.orionvault.ui.components.VaultTextField
-import com.cuboidestudio.orionvault.ui.theme.CodeTextStyle
-import com.cuboidestudio.orionvault.ui.theme.OrionColors
+import com.cuboidestudio.orionvault.ui.components.ItemAvatar
+import com.cuboidestudio.orionvault.ui.components.OrionButton
+import com.cuboidestudio.orionvault.ui.components.OrionButtonSize
+import com.cuboidestudio.orionvault.ui.components.OrionButtonVariant
+import com.cuboidestudio.orionvault.ui.components.OrionDialog
+import com.cuboidestudio.orionvault.ui.components.OrionScaffold
+import com.cuboidestudio.orionvault.ui.components.OrionSectionHeader
+import com.cuboidestudio.orionvault.ui.components.OrionSurface
+import com.cuboidestudio.orionvault.ui.components.OrionTextField
+import com.cuboidestudio.orionvault.ui.components.OrionTopBar
+import com.cuboidestudio.orionvault.ui.components.PasswordStrengthMeter
+import com.cuboidestudio.orionvault.ui.components.SecurityBadge
+import com.cuboidestudio.orionvault.ui.components.SecurityLevel
+import com.cuboidestudio.orionvault.ui.theme.OrionMotion
+import com.cuboidestudio.orionvault.ui.theme.OrionShapes
+import com.cuboidestudio.orionvault.ui.theme.OrionSizes
+import com.cuboidestudio.orionvault.ui.theme.OrionSpacing
 import com.cuboidestudio.orionvault.viewmodel.ItemEditorStep
 import com.cuboidestudio.orionvault.viewmodel.ItemEditorViewModel
 
 @Composable
 fun ItemEditorScreen(viewModel: ItemEditorViewModel, onDone: () -> Unit) {
     val step by viewModel.step.collectAsState()
-    when (step) {
-        ItemEditorStep.FieldConfig -> FieldConfigStep(viewModel, onCancel = onDone)
-        ItemEditorStep.Form -> ItemFormStep(viewModel, onDone = onDone)
+
+    AnimatedContent(
+        targetState = step,
+        transitionSpec = {
+            val forward = targetState == ItemEditorStep.Form
+            val offset = if (forward) 1 else -1
+            (
+                slideInHorizontally(OrionMotion.tweenMedium()) { it / 4 * offset } +
+                    fadeIn(OrionMotion.tweenMedium())
+                ) togetherWith (
+                slideOutHorizontally(OrionMotion.tweenMedium()) { -it / 4 * offset } +
+                    fadeOut(OrionMotion.tweenFast())
+                ) using SizeTransform(clip = false)
+        },
+        label = "itemEditorStep"
+    ) { currentStep ->
+        when (currentStep) {
+            ItemEditorStep.FieldConfig -> FieldConfigStep(viewModel, onCancel = onDone)
+            ItemEditorStep.Form -> ItemFormStep(viewModel, onDone = onDone)
+        }
     }
 }
 
@@ -78,91 +117,90 @@ private fun FieldConfigStep(viewModel: ItemEditorViewModel, onCancel: () -> Unit
     val includeUsername by viewModel.includeUsername.collectAsState()
     val includeEmail by viewModel.includeEmail.collectAsState()
 
-    Column(modifier = Modifier.fillMaxSize().background(OrionColors.Background)) {
+    OrionScaffold(
+        topBar = { OrionTopBar(title = "Nova conta", onBack = onCancel, showDivider = false) }
+    ) { padding ->
+        EditorContent(padding = padding) {
+            Text(
+                text = "Quais campos você quer incluir?",
+                style = MaterialTheme.typography.headlineSmall,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(Modifier.height(OrionSpacing.xxs))
+            Text(
+                text = "Você pode adicionar ou remover esses campos depois, a qualquer momento.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(Modifier.height(OrionSpacing.lg))
+
+            OrionSurface(modifier = Modifier.fillMaxWidth(), padding = PaddingValues(OrionSpacing.xxs)) {
+                FieldToggle(
+                    icon = Icons.Filled.Person,
+                    label = "Incluir nome de usuário",
+                    checked = includeUsername,
+                    onCheckedChange = viewModel::setIncludeUsername
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                FieldToggle(
+                    icon = Icons.Filled.Email,
+                    label = "Incluir e-mail",
+                    checked = includeEmail,
+                    onCheckedChange = viewModel::setIncludeEmail
+                )
+            }
+
+            Spacer(Modifier.height(OrionSpacing.lg))
+
+            OrionButton(
+                text = "Avançar",
+                onClick = viewModel::advanceToForm,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+@Composable
+private fun FieldToggle(
+    icon: ImageVector,
+    label: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onCheckedChange(!checked) }
+            .padding(horizontal = OrionSpacing.sm, vertical = OrionSpacing.sm),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Row(
-            modifier = Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.spacedBy(OrionSpacing.sm)
         ) {
-            TextButton(onClick = onCancel) {
-                Icon(Icons.Filled.Close, contentDescription = null, tint = OrionColors.OnSurfaceVariant, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(4.dp))
-                Text("Cancel", style = MaterialTheme.typography.labelSmall, color = OrionColors.OnSurfaceVariant)
-            }
-            Text(
-                "Nova Conta",
-                style = MaterialTheme.typography.headlineMedium,
-                color = OrionColors.Primary
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(OrionSizes.icon)
             )
-            Spacer(Modifier.width(64.dp))
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
         }
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .widthIn(max = 560.dp)
-                .padding(horizontal = 24.dp, vertical = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                "Quais campos você quer incluir?",
-                style = MaterialTheme.typography.titleMedium,
-                color = OrionColors.OnSurface
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                checkedTrackColor = MaterialTheme.colorScheme.primaryContainer
             )
-            Spacer(Modifier.height(4.dp))
-            Text(
-                "Você pode adicionar ou remover isso depois, a qualquer momento.",
-                style = MaterialTheme.typography.labelSmall,
-                color = OrionColors.OnSurfaceVariant
-            )
-
-            Spacer(Modifier.height(24.dp))
-
-            GlassPanel(modifier = Modifier.fillMaxWidth()) {
-                Column {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Filled.Person, contentDescription = null, tint = OrionColors.OnSurfaceVariant)
-                            Spacer(Modifier.width(12.dp))
-                            Text("Incluir Username", style = MaterialTheme.typography.bodyMedium, color = OrionColors.OnSurface)
-                        }
-                        Switch(checked = includeUsername, onCheckedChange = viewModel::setIncludeUsername)
-                    }
-                    Spacer(Modifier.height(16.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Filled.Email, contentDescription = null, tint = OrionColors.OnSurfaceVariant)
-                            Spacer(Modifier.width(12.dp))
-                            Text("Incluir E-mail", style = MaterialTheme.typography.bodyMedium, color = OrionColors.OnSurface)
-                        }
-                        Switch(checked = includeEmail, onCheckedChange = viewModel::setIncludeEmail)
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(24.dp))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(OrionColors.Primary, MaterialTheme.shapes.small)
-                    .clickable { viewModel.advanceToForm() }
-                    .padding(vertical = 14.dp),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Avançar", style = MaterialTheme.typography.labelLarge, color = OrionColors.Background, fontWeight = FontWeight.Bold)
-            }
-        }
+        )
     }
 }
 
@@ -185,6 +223,7 @@ private fun ItemFormStep(viewModel: ItemEditorViewModel, onDone: () -> Unit) {
     var showPassword by remember { mutableStateOf(false) }
     var initialized by remember { mutableStateOf(false) }
     var showFolderPicker by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
 
     LaunchedEffect(existing) {
         val item = existing
@@ -203,263 +242,398 @@ private fun ItemFormStep(viewModel: ItemEditorViewModel, onDone: () -> Unit) {
         if (saved) onDone()
     }
 
-    Column(modifier = Modifier.fillMaxSize().background(OrionColors.Background)) {
-        Row(
-            modifier = Modifier.fillMaxWidth().height(64.dp).padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            TextButton(onClick = onDone) {
-                Icon(Icons.Filled.Close, contentDescription = null, tint = OrionColors.OnSurfaceVariant, modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(4.dp))
-                Text("Cancel", style = MaterialTheme.typography.labelSmall, color = OrionColors.OnSurfaceVariant)
-            }
-            Text(
-                if (existing != null) "Editar Conta" else "Nova Conta",
-                style = MaterialTheme.typography.headlineMedium,
-                color = OrionColors.Primary
+    // O caminho de cada pasta é calculado uma vez por lista, não a cada chamada: antes o
+    // `associateBy` era reconstruído dentro de um `sortedBy`, ou seja, a cada comparação.
+    val folderPaths = remember(folders) { buildFolderPaths(folders) }
+    val isEditing = existing != null
+
+    OrionScaffold(
+        topBar = {
+            OrionTopBar(
+                title = if (isEditing) "Editar conta" else "Nova conta",
+                onBack = onDone,
+                showDivider = false
             )
-            TextButton(onClick = {
-                viewModel.save(
-                    title,
-                    if (includeUsername) username.ifBlank { null } else null,
-                    if (includeEmail) email.ifBlank { null } else null,
-                    password,
-                    url.ifBlank { null },
-                    notes.ifBlank { null }
-                )
-            }) {
-                Text("Save", style = MaterialTheme.typography.labelSmall, color = OrionColors.Primary, fontWeight = FontWeight.Bold)
-            }
+        },
+        bottomBar = {
+            EditorBottomBar(
+                primaryLabel = "Salvar",
+                onPrimary = {
+                    viewModel.save(
+                        title,
+                        if (includeUsername) username.ifBlank { null } else null,
+                        if (includeEmail) email.ifBlank { null } else null,
+                        password,
+                        url.ifBlank { null },
+                        notes.ifBlank { null }
+                    )
+                },
+                onCancel = onDone
+            )
         }
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .widthIn(max = 560.dp)
-                .padding(horizontal = 24.dp, vertical = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Box(
-                modifier = Modifier.size(64.dp).background(OrionColors.GlassPanel, MaterialTheme.shapes.medium),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    title.take(1).ifBlank { "?" }.uppercase(),
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = OrionColors.Primary
-                )
-            }
-            Spacer(Modifier.height(12.dp))
-            Text(
-                title.ifBlank { "Nova Conta" },
-                style = MaterialTheme.typography.headlineMedium,
-                color = OrionColors.OnSurface
-            )
-
-            Spacer(Modifier.height(24.dp))
-
-            FieldLabel("Título da Conta")
-            VaultTextField(value = title, onValueChange = { title = it }, modifier = Modifier.fillMaxWidth())
-
-            Spacer(Modifier.height(16.dp))
-
-            FieldLabel("Pasta")
-            val selectedFolder = remember(folders, selectedFolderId) { folders.firstOrNull { it.id == selectedFolderId } }
-            GlassPanel(
+    ) { padding ->
+        EditorContent(padding = padding) {
+            // --- Identidade -----------------------------------------------------------------
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                onClick = { showFolderPicker = true }
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                ItemAvatar(
+                    title = title.ifBlank { "?" },
+                    size = 68.dp,
+                    shape = OrionShapes.CardLarge
+                )
+                Spacer(Modifier.height(OrionSpacing.sm))
+                Text(
+                    text = title.ifBlank { "Nova conta" },
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Spacer(Modifier.height(OrionSpacing.xs))
+                SecurityBadge(text = "Criptografado", level = SecurityLevel.Secure)
+            }
+
+            Spacer(Modifier.height(OrionSpacing.xl))
+
+            // --- Identificação --------------------------------------------------------------
+            OrionSectionHeader("Identificação")
+            OrionSurface(modifier = Modifier.fillMaxWidth()) {
+                OrionTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = "Título da conta",
+                    placeholder = "Ex.: GitHub"
+                )
+
+                Spacer(Modifier.height(OrionSpacing.md))
+
+                Text(
+                    text = "Pasta",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = OrionSpacing.xxs + 2.dp)
+                )
+                FolderPickerRow(
+                    label = selectedFolderId?.let { folderPaths[it] } ?: "Nenhuma pasta",
+                    hasFolder = selectedFolderId != null,
+                    onClick = { showFolderPicker = true }
+                )
+            }
+
+            Spacer(Modifier.height(OrionSpacing.lg))
+
+            // --- Credenciais ----------------------------------------------------------------
+            OrionSectionHeader("Credenciais")
+            OrionSurface(modifier = Modifier.fillMaxWidth()) {
+                OptionalField(
+                    label = "Nome de usuário",
+                    addLabel = "Adicionar nome de usuário",
+                    visible = includeUsername,
+                    onAdd = { viewModel.setIncludeUsername(true) },
+                    onRemove = {
+                        viewModel.setIncludeUsername(false)
+                        username = ""
+                    }
+                ) {
+                    OrionTextField(
+                        value = username,
+                        onValueChange = { username = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        trailingIcon = { Icon(Icons.Filled.Person, contentDescription = null) }
+                    )
+                }
+
+                OptionalField(
+                    label = "E-mail",
+                    addLabel = "Adicionar e-mail",
+                    visible = includeEmail,
+                    onAdd = { viewModel.setIncludeEmail(true) },
+                    onRemove = {
+                        viewModel.setIncludeEmail(false)
+                        email = ""
+                    }
+                ) {
+                    OrionTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        trailingIcon = { Icon(Icons.Filled.Email, contentDescription = null) }
+                    )
+                }
+
+                Text(
+                    text = "Senha",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = OrionSpacing.xxs + 2.dp)
+                )
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    horizontalArrangement = Arrangement.spacedBy(OrionSpacing.xs),
+                    verticalAlignment = Alignment.Top
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Icon(
-                            if (selectedFolder != null) Icons.Filled.Folder else Icons.Filled.FolderOff,
-                            contentDescription = null,
-                            tint = OrionColors.Primary
-                        )
-                        Text(
-                            selectedFolder?.let { folderPath(it, folders) } ?: "Nenhuma pasta",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = OrionColors.OnSurface
-                        )
-                    }
-                }
-            }
-
-            if (showFolderPicker) {
-                FolderSelectDialog(
-                    folders = folders,
-                    onSelect = { id ->
-                        viewModel.selectFolder(id)
-                        showFolderPicker = false
-                    },
-                    onDismiss = { showFolderPicker = false }
-                )
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            OptionalField(
-                label = "Nome de usuário",
-                addLabel = "Adicionar Username",
-                visible = includeUsername,
-                onAdd = { viewModel.setIncludeUsername(true) },
-                onRemove = {
-                    viewModel.setIncludeUsername(false)
-                    username = ""
-                }
-            ) {
-                VaultTextField(
-                    value = username,
-                    onValueChange = { username = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    trailingIcon = { Icon(Icons.Filled.Person, contentDescription = null, tint = OrionColors.OnSurfaceVariant) }
-                )
-            }
-
-            OptionalField(
-                label = "E-mail",
-                addLabel = "Adicionar E-mail",
-                visible = includeEmail,
-                onAdd = { viewModel.setIncludeEmail(true) },
-                onRemove = {
-                    viewModel.setIncludeEmail(false)
-                    email = ""
-                }
-            ) {
-                VaultTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                    trailingIcon = { Icon(Icons.Filled.Email, contentDescription = null, tint = OrionColors.OnSurfaceVariant) }
-                )
-            }
-
-            Spacer(Modifier.height(16.dp))
-
-            FieldLabel("Senha")
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                VaultTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    modifier = Modifier.weight(1f),
-                    visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
-                    textStyle = CodeTextStyle,
-                    trailingIcon = {
-                        IconButton(onClick = { showPassword = !showPassword }) {
-                            Icon(
-                                if (showPassword) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                                contentDescription = "Mostrar senha",
-                                tint = OrionColors.OnSurfaceVariant
-                            )
+                    OrionTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        modifier = Modifier.weight(1f),
+                        mono = true,
+                        visualTransformation = if (showPassword) {
+                            VisualTransformation.None
+                        } else {
+                            PasswordVisualTransformation()
+                        },
+                        trailingIcon = {
+                            IconButton(onClick = { showPassword = !showPassword }) {
+                                Icon(
+                                    imageVector = if (showPassword) {
+                                        Icons.Filled.VisibilityOff
+                                    } else {
+                                        Icons.Filled.Visibility
+                                    },
+                                    contentDescription = if (showPassword) "Ocultar senha" else "Mostrar senha"
+                                )
+                            }
                         }
+                    )
+                    OrionButton(
+                        text = "Gerar",
+                        onClick = { password = PasswordGenerator.generate() },
+                        variant = OrionButtonVariant.Secondary,
+                        icon = Icons.Filled.EnhancedEncryption,
+                        modifier = Modifier.heightIn(min = OrionSizes.field).padding(top = 3.dp)
+                    )
+                }
+
+                AnimatedVisibility(visible = password.isNotEmpty()) {
+                    val (score, label) = remember(password) { PasswordGenerator.strength(password) }
+                    Column {
+                        Spacer(Modifier.height(OrionSpacing.sm))
+                        PasswordStrengthMeter(score = score, label = label)
                     }
-                )
-                Row(
-                    modifier = Modifier
-                        .background(OrionColors.SecondaryContainer, MaterialTheme.shapes.small)
-                        .clickable { password = PasswordGenerator.generate() }
-                        .padding(horizontal = 12.dp)
-                        .height(56.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Icon(Icons.Filled.EnhancedEncryption, contentDescription = null, tint = OrionColors.OnSecondaryContainer, modifier = Modifier.size(16.dp))
-                    Text("Generate", style = MaterialTheme.typography.labelSmall, color = OrionColors.OnSecondaryContainer)
                 }
             }
 
-            if (password.isNotEmpty()) {
-                val (score, label) = remember(password) { PasswordGenerator.strength(password) }
-                Spacer(Modifier.height(8.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(label, style = MaterialTheme.typography.labelSmall, color = OrionColors.Secondary)
-                    Text("${(score * 100).toInt()}%", style = MaterialTheme.typography.labelSmall, color = OrionColors.OnSurfaceVariant)
-                }
-                Spacer(Modifier.height(4.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(4.dp)
-                        .background(OrionColors.SurfaceContainerHighest, MaterialTheme.shapes.small)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(score)
-                            .height(4.dp)
-                            .background(OrionColors.Secondary, MaterialTheme.shapes.small)
+            Spacer(Modifier.height(OrionSpacing.lg))
+
+            // --- Detalhes -------------------------------------------------------------------
+            OrionSectionHeader("Detalhes")
+            OrionSurface(modifier = Modifier.fillMaxWidth()) {
+                OrionTextField(
+                    value = url,
+                    onValueChange = { url = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = "URL",
+                    placeholder = "https://",
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                    trailingIcon = { Icon(Icons.Filled.Link, contentDescription = null) }
+                )
+
+                Spacer(Modifier.height(OrionSpacing.md))
+
+                OrionTextField(
+                    value = notes,
+                    onValueChange = { notes = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = "Descrição",
+                    placeholder = "Anotações sobre esta conta.",
+                    singleLine = false,
+                    minLines = 4,
+                    leadingIcon = {
+                        Icon(Icons.AutoMirrored.Filled.Notes, contentDescription = null)
+                    }
+                )
+            }
+
+            AnimatedVisibility(visible = error != null) {
+                Column {
+                    Spacer(Modifier.height(OrionSpacing.sm))
+                    Text(
+                        text = error.orEmpty(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error
                     )
                 }
             }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(OrionSpacing.lg))
 
-            FieldLabel("URL")
-            VaultTextField(
-                value = url,
-                onValueChange = { url = it },
-                modifier = Modifier.fillMaxWidth(),
-                trailingIcon = { Icon(Icons.Filled.Link, contentDescription = null, tint = OrionColors.OnSurfaceVariant) }
+            SecurityNote()
+
+            if (isEditing) {
+                Spacer(Modifier.height(OrionSpacing.lg))
+                OrionSectionHeader("Zona de perigo")
+                OrionButton(
+                    text = "Excluir item permanentemente",
+                    onClick = { showDeleteConfirm = true },
+                    variant = OrionButtonVariant.Destructive,
+                    icon = Icons.Filled.Delete,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            Spacer(Modifier.height(OrionSpacing.lg))
+        }
+    }
+
+    if (showFolderPicker) {
+        FolderSelectDialog(
+            folders = folders,
+            folderPaths = folderPaths,
+            onSelect = { id ->
+                viewModel.selectFolder(id)
+                showFolderPicker = false
+            },
+            onDismiss = { showFolderPicker = false }
+        )
+    }
+
+    // Exclusão de item passou a exigir confirmação. Antes ela era imediata, enquanto o editor de
+    // pastas — uma ação menos destrutiva — já perguntava.
+    if (showDeleteConfirm) {
+        OrionDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = "Excluir este item?",
+            text = "A conta \"${title.ifBlank { "sem título" }}\" será removida em definitivo deste " +
+                "cofre e de todos os dispositivos sincronizados. Não há como desfazer.",
+            confirmLabel = "Excluir",
+            destructive = true,
+            onConfirm = {
+                showDeleteConfirm = false
+                viewModel.delete()
+            }
+        )
+    }
+}
+
+/**
+ * Coluna de conteúdo dos editores.
+ *
+ * O `widthIn(max = …)` vem antes do preenchimento de largura e a coluna externa centraliza — nas telas
+ * antigas a ordem estava invertida, então o limite de largura não centralizava nada em janelas largas.
+ */
+@Composable
+private fun EditorContent(
+    padding: PaddingValues,
+    content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(padding),
+        contentAlignment = Alignment.TopCenter
+    ) {
+        Column(
+            modifier = Modifier
+                .widthIn(max = OrionSizes.contentForm)
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = OrionSpacing.screenH, vertical = OrionSpacing.md),
+            content = content
+        )
+    }
+}
+
+@Composable
+private fun EditorBottomBar(
+    primaryLabel: String,
+    onPrimary: () -> Unit,
+    onCancel: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+    ) {
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        Box(
+            modifier = Modifier.fillMaxWidth().padding(
+                horizontal = OrionSpacing.screenH,
+                vertical = OrionSpacing.sm
+            ),
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                modifier = Modifier.widthIn(max = OrionSizes.contentForm).fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(OrionSpacing.sm)
+            ) {
+                OrionButton(
+                    text = "Cancelar",
+                    onClick = onCancel,
+                    variant = OrionButtonVariant.Ghost,
+                    modifier = Modifier.weight(1f)
+                )
+                OrionButton(
+                    text = primaryLabel,
+                    onClick = onPrimary,
+                    variant = OrionButtonVariant.Primary,
+                    modifier = Modifier.weight(1.6f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun FolderPickerRow(label: String, hasFolder: Boolean, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceContainerLowest, OrionShapes.Input)
+            .clickable(onClick = onClick)
+            .padding(horizontal = OrionSpacing.md, vertical = OrionSpacing.md),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(OrionSpacing.sm)
+    ) {
+        Icon(
+            imageVector = if (hasFolder) Icons.Filled.Folder else Icons.Filled.FolderOff,
+            contentDescription = null,
+            tint = if (hasFolder) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            },
+            modifier = Modifier.size(OrionSizes.icon)
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+private fun SecurityNote() {
+    OrionSurface(modifier = Modifier.fillMaxWidth()) {
+        Row(horizontalArrangement = Arrangement.spacedBy(OrionSpacing.sm)) {
+            Icon(
+                imageVector = Icons.Filled.EnhancedEncryption,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.size(OrionSizes.icon)
             )
-
-            Spacer(Modifier.height(16.dp))
-
-            FieldLabel("Descrição")
-            VaultTextField(
-                value = notes,
-                onValueChange = { notes = it },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = "Adicione sua descrição aqui.",
-                singleLine = false,
-                minLines = 4,
-                leadingIcon = { Icon(Icons.AutoMirrored.Filled.Notes, contentDescription = null, tint = OrionColors.OnSurfaceVariant) }
-            )
-
-            error?.let {
-                Spacer(Modifier.height(8.dp))
-                Text(it, style = MaterialTheme.typography.labelSmall, color = OrionColors.Error)
+            Column {
+                Text(
+                    text = "Ambiente seguro",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(Modifier.height(OrionSpacing.xxs))
+                // O texto anterior dizia AES-256; a implementação real em `crypto/AeadCipher` é
+                // XChaCha20-Poly1305.
+                Text(
+                    text = "Este item é criptografado com XChaCha20-Poly1305 e fica apenas nos " +
+                        "dispositivos que você autorizou.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
-
-            Spacer(Modifier.height(24.dp))
-
-            GlassPanel(modifier = Modifier.fillMaxWidth()) {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Icon(Icons.Filled.VerifiedUser, contentDescription = null, tint = OrionColors.Secondary)
-                    Column {
-                        Text("Secure Environment", style = MaterialTheme.typography.labelLarge, color = OrionColors.OnSurface, fontWeight = FontWeight.Bold)
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            "This item is encrypted with AES-256 and stored only on your authorized devices.",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = OrionColors.OnSurfaceVariant
-                        )
-                    }
-                }
-            }
-
-            if (existing != null) {
-                Spacer(Modifier.height(24.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { viewModel.delete() }
-                        .padding(vertical = 16.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(Icons.Filled.Delete, contentDescription = null, tint = OrionColors.Error, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text("Delete Item Permanently", style = MaterialTheme.typography.labelSmall, color = OrionColors.Error)
-                }
-            }
-
-            Spacer(Modifier.height(24.dp))
         }
     }
 }
@@ -479,97 +653,139 @@ private fun OptionalField(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            FieldLabel(label, modifier = Modifier.weight(1f))
-            IconButton(onClick = onRemove, modifier = Modifier.size(24.dp)) {
-                Icon(Icons.Filled.Close, contentDescription = "Remover $label", tint = OrionColors.OnSurfaceVariant)
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f)
+            )
+            IconButton(onClick = onRemove, modifier = Modifier.size(28.dp)) {
+                Icon(
+                    imageVector = Icons.Filled.Close,
+                    contentDescription = "Remover $label",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(OrionSizes.iconSm)
+                )
             }
         }
+        Spacer(Modifier.height(OrionSpacing.xxs))
         field()
-        Spacer(Modifier.height(16.dp))
     } else {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(onClick = onAdd)
-                .padding(vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(vertical = OrionSpacing.xs),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(OrionSpacing.xxs + 2.dp)
         ) {
-            Icon(Icons.Filled.Add, contentDescription = null, tint = OrionColors.Primary, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(6.dp))
-            Text(addLabel, style = MaterialTheme.typography.labelSmall, color = OrionColors.Primary)
+            Icon(
+                imageVector = Icons.Filled.Add,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(OrionSizes.iconSm)
+            )
+            Text(
+                text = addLabel,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
-        Spacer(Modifier.height(16.dp))
     }
-}
-
-@Composable
-private fun FieldLabel(text: String, modifier: Modifier = Modifier) {
-    Text(
-        text,
-        style = MaterialTheme.typography.labelSmall,
-        color = OrionColors.Primary,
-        modifier = modifier.fillMaxWidth().padding(bottom = 6.dp)
-    )
+    Spacer(Modifier.height(OrionSpacing.md))
 }
 
 @Composable
 private fun FolderSelectDialog(
     folders: List<VaultFolder>,
+    folderPaths: Map<String, String>,
     onSelect: (String?) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val sorted = remember(folders) { folders.sortedBy { folderPath(it, folders) } }
+    val sorted = remember(folders, folderPaths) {
+        folders.sortedBy { folderPaths[it.id].orEmpty() }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Escolha uma pasta", color = OrionColors.OnSurface) },
-        containerColor = OrionColors.SurfaceContainerHigh,
+        shape = OrionShapes.Dialog,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+        title = {
+            Text(
+                text = "Escolha uma pasta",
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        },
         text = {
-            LazyColumn(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(OrionSpacing.xxs)) {
                 item {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelect(null) }
-                            .padding(vertical = 12.dp, horizontal = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Icon(Icons.Filled.FolderOff, contentDescription = null, tint = OrionColors.Primary)
-                        Text("Nenhuma pasta", color = OrionColors.OnSurface)
-                    }
+                    FolderOption(
+                        label = "Nenhuma pasta",
+                        icon = Icons.Filled.FolderOff,
+                        onClick = { onSelect(null) }
+                    )
                 }
                 items(sorted, key = { it.id }) { folder ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSelect(folder.id) }
-                            .padding(vertical = 12.dp, horizontal = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Icon(Icons.Filled.Folder, contentDescription = null, tint = OrionColors.Primary)
-                        Text(folderPath(folder, folders), color = OrionColors.OnSurface)
-                    }
+                    FolderOption(
+                        label = folderPaths[folder.id] ?: folder.name,
+                        icon = Icons.Filled.Folder,
+                        onClick = { onSelect(folder.id) }
+                    )
                 }
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancelar", color = OrionColors.Primary)
-            }
+            OrionButton(
+                text = "Cancelar",
+                onClick = onDismiss,
+                variant = OrionButtonVariant.Ghost,
+                size = OrionButtonSize.Medium
+            )
         }
     )
 }
 
-private fun folderPath(folder: VaultFolder, folders: List<VaultFolder>): String {
-    val byId = folders.associateBy { it.id }
-    val names = mutableListOf(folder.name)
-    var parentId = folder.parentId
-    while (parentId != null) {
-        val parent = byId[parentId] ?: break
-        names.add(0, parent.name)
-        parentId = parent.parentId
+@Composable
+private fun FolderOption(label: String, icon: ImageVector, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = OrionSpacing.sm, horizontal = OrionSpacing.xxs),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(OrionSpacing.sm)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(OrionSizes.icon)
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
-    return names.joinToString(" / ")
+}
+
+/** Monta uma vez o caminho completo ("Pai / Filho") de cada pasta, indexado por id. */
+private fun buildFolderPaths(folders: List<VaultFolder>): Map<String, String> {
+    val byId = folders.associateBy { it.id }
+    return folders.associate { folder ->
+        val names = mutableListOf(folder.name)
+        var parentId = folder.parentId
+        // O limite de profundidade é 5 (VaultConstants.MAX_FOLDER_DEPTH); o `seen` protege contra
+        // um ciclo em dados corrompidos, que aqui viraria laço infinito.
+        val seen = mutableSetOf(folder.id)
+        while (parentId != null && seen.add(parentId)) {
+            val parent = byId[parentId] ?: break
+            names.add(0, parent.name)
+            parentId = parent.parentId
+        }
+        folder.id to names.joinToString(" / ")
+    }
 }
