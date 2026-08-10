@@ -1,5 +1,6 @@
 package com.cuboidestudio.orionvault.storage.secure
 
+import com.cuboidestudio.orionvault.crypto.CipherBlob
 import com.sun.jna.platform.win32.Crypt32Util
 import java.io.File
 import java.nio.charset.StandardCharsets
@@ -23,6 +24,12 @@ private fun secretsFile(): File =
 
 private fun authSessionFile(): File =
     File(secureStorageDir(), if (isWindows) "auth_session.dpapi" else "auth_session.enc")
+
+private fun biometricChoiceFile(): File =
+    File(secureStorageDir(), if (isWindows) "biometric_choice.dpapi" else "biometric_choice.enc")
+
+private fun biometricBlobFile(): File =
+    File(secureStorageDir(), if (isWindows) "biometric_blob.dpapi" else "biometric_blob.enc")
 
 /**
  * Implementação real para Windows via DPAPI (JNA `Crypt32Util`): os bytes só podem ser
@@ -54,6 +61,28 @@ class JvmSecureCredentialStore : SecureCredentialStore {
 
     override suspend fun clearAuthSession() {
         authSessionFile().delete()
+    }
+
+    // Nunca acionados na prática: BiometricAuthenticator.isAvailable() é sempre falso no JVM/Desktop
+    // (sem hardware biométrico de SO equivalente nesta plataforma).
+    override suspend fun saveBiometricChoice(choice: BiometricUnlockChoice) {
+        writeProtected(biometricChoiceFile(), choice.name)
+    }
+
+    override suspend fun loadBiometricChoice(): BiometricUnlockChoice =
+        readProtected(biometricChoiceFile())?.let {
+            runCatching { BiometricUnlockChoice.valueOf(it) }.getOrNull()
+        } ?: BiometricUnlockChoice.UNDECIDED
+
+    override suspend fun saveBiometricKeystoreBlob(blob: CipherBlob) {
+        writeProtected(biometricBlobFile(), blob.toStorageString())
+    }
+
+    override suspend fun loadBiometricKeystoreBlob(): CipherBlob? =
+        readProtected(biometricBlobFile())?.let { runCatching { CipherBlob.fromStorageString(it) }.getOrNull() }
+
+    override suspend fun clearBiometricKeystoreBlob() {
+        biometricBlobFile().delete()
     }
 
     private fun writeProtected(file: File, content: String) {

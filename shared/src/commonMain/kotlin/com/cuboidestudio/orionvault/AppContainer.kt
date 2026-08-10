@@ -6,6 +6,8 @@ import com.cuboidestudio.orionvault.domain.repository.VaultRepositoryImpl
 import com.cuboidestudio.orionvault.network.AuthApiClient
 import com.cuboidestudio.orionvault.network.SyncApiClient
 import com.cuboidestudio.orionvault.network.createHttpClient
+import com.cuboidestudio.orionvault.security.PlatformBiometricContext
+import com.cuboidestudio.orionvault.security.createBiometricAuthenticator
 import com.cuboidestudio.orionvault.session.AccountSessionManager
 import com.cuboidestudio.orionvault.session.SessionManager
 import com.cuboidestudio.orionvault.storage.db.VaultDatabaseProvider
@@ -22,11 +24,13 @@ import kotlinx.serialization.json.Json
  * Service locator manual (sem DI framework) que conecta storage, crypto, sessão e sync a partir
  * do [PlatformContext] de cada entry point (Android/Desktop/iOS).
  */
-class AppContainer(platformContext: PlatformContext) {
+class AppContainer(platformContext: PlatformContext, platformBiometricContext: PlatformBiometricContext) {
     val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     internal val secureCredentialStore = createSecureCredentialStore(platformContext)
     private val database = VaultDatabaseProvider.create(platformContext)
+
+    val biometricAuthenticator = createBiometricAuthenticator(platformBiometricContext, secureCredentialStore)
 
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true; explicitNulls = false }
     private val httpClient = createHttpClient(json)

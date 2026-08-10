@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +41,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.cuboidestudio.orionvault.ui.components.OrionBackground
 import com.cuboidestudio.orionvault.ui.components.OrionButton
+import com.cuboidestudio.orionvault.ui.components.OrionButtonVariant
+import com.cuboidestudio.orionvault.ui.components.OrionDialog
 import com.cuboidestudio.orionvault.ui.components.OrionTextField
 import com.cuboidestudio.orionvault.ui.theme.OrionSizes
 import com.cuboidestudio.orionvault.ui.theme.OrionSpacing
@@ -55,13 +58,42 @@ import com.cuboidestudio.orionvault.viewmodel.UnlockViewModel
 fun UnlockScreen(viewModel: UnlockViewModel, onUnlocked: () -> Unit) {
     val error by viewModel.errorMessage.collectAsState()
     val unlocked by viewModel.unlocked.collectAsState()
+    val askBiometricEnable by viewModel.askBiometricEnable.collectAsState()
+    val quickUnlockAvailable by viewModel.biometricAvailableForQuickUnlock.collectAsState()
     var password by remember { mutableStateOf("") }
+    var autoPromptShown by remember { mutableStateOf(false) }
 
-    LaunchedEffect(unlocked) {
-        if (unlocked) onUnlocked()
+    LaunchedEffect(Unit) {
+        viewModel.refreshQuickUnlockAvailability()
+    }
+
+    // Dispara o prompt biométrico assim que a tela abre, sem exigir toque — como nos apps de banco.
+    // Cancelar o prompt do sistema só deixa o campo de senha disponível; não fica reabrindo sozinho.
+    LaunchedEffect(quickUnlockAvailable) {
+        if (quickUnlockAvailable && !autoPromptShown) {
+            autoPromptShown = true
+            viewModel.quickUnlock()
+        }
+    }
+
+    // Segura a navegação até o convite de biometria (se houver) ser respondido.
+    LaunchedEffect(unlocked, askBiometricEnable) {
+        if (unlocked && !askBiometricEnable) onUnlocked()
     }
 
     val submit = { viewModel.attemptUnlock(password.toCharArray()) }
+
+    if (askBiometricEnable) {
+        OrionDialog(
+            onDismissRequest = viewModel::declineBiometric,
+            title = "Usar biometria do celular para desbloquear?",
+            text = "Você pode usar sua digital, rosto ou o desbloqueio de tela do aparelho para " +
+                "abrir o cofre mais rápido, sem digitar a Master Password.",
+            confirmLabel = "Usar biometria",
+            dismissLabel = "Continuar só com a senha",
+            onConfirm = viewModel::confirmEnableBiometric
+        )
+    }
 
     OrionBackground(intensity = 1.8f) {
         Box(
@@ -116,6 +148,18 @@ fun UnlockScreen(viewModel: UnlockViewModel, onUnlocked: () -> Unit) {
                     enabled = password.isNotEmpty(),
                     modifier = Modifier.fillMaxWidth()
                 )
+
+                if (quickUnlockAvailable) {
+                    Spacer(Modifier.height(OrionSpacing.xs))
+
+                    OrionButton(
+                        text = "Usar biometria",
+                        onClick = viewModel::quickUnlock,
+                        icon = Icons.Filled.Fingerprint,
+                        variant = OrionButtonVariant.Secondary,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
 
                 Spacer(Modifier.height(OrionSpacing.lg))
 

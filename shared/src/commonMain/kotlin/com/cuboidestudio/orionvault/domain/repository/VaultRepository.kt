@@ -39,6 +39,18 @@ interface VaultRepository {
 
     /** Tenta desbloquear o cofre; retorna false se a Master Password estiver incorreta. */
     suspend fun unlock(masterPassword: CharArray): Boolean
+
+    /**
+     * Desbloqueia com uma chave já derivada (ex.: recuperada via desbloqueio biométrico secundário).
+     * Revalida contra o canary antes de aceitar — nunca confia cegamente na origem da chave.
+     */
+    suspend fun unlockWithKey(key: ByteArray): Boolean
+
+    /**
+     * Chave de sessão atual, para uso exclusivo por quem ativa o desbloqueio biométrico logo após
+     * um unlock por senha bem-sucedido. Retorna null se o cofre estiver bloqueado.
+     */
+    fun currentSessionKeyOrNull(): ByteArray?
     fun lock()
     fun isUnlocked(): Boolean
 

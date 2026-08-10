@@ -2,13 +2,14 @@ package com.cuboidestudio.orionvault
 
 import android.graphics.Color
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.fragment.app.FragmentActivity
+import com.cuboidestudio.orionvault.security.PlatformBiometricContext
 import com.cuboidestudio.orionvault.storage.secure.PlatformContext
 
-class MainActivity : ComponentActivity() {
+class MainActivity : FragmentActivity() {
     private lateinit var container: AppContainer
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -21,7 +22,7 @@ class MainActivity : ComponentActivity() {
         )
         super.onCreate(savedInstanceState)
 
-        container = AppContainer(PlatformContext(applicationContext))
+        container = AppContainer(PlatformContext(applicationContext), PlatformBiometricContext(this))
         setContent {
             App(container)
         }

@@ -28,6 +28,7 @@ import com.cuboidestudio.orionvault.ui.screens.AuthScreen
 import com.cuboidestudio.orionvault.ui.screens.FolderEditorScreen
 import com.cuboidestudio.orionvault.ui.screens.ItemEditorScreen
 import com.cuboidestudio.orionvault.ui.screens.OnboardingScreen
+import com.cuboidestudio.orionvault.ui.screens.SecuritySettingsScreen
 import com.cuboidestudio.orionvault.ui.screens.SyncSettingsScreen
 import com.cuboidestudio.orionvault.ui.screens.UnlockScreen
 import com.cuboidestudio.orionvault.ui.screens.VaultScreen
@@ -39,6 +40,7 @@ import com.cuboidestudio.orionvault.viewmodel.ItemEditorViewModel
 import com.cuboidestudio.orionvault.viewmodel.OnboardingViewModel
 import com.cuboidestudio.orionvault.viewmodel.RootViewModel
 import com.cuboidestudio.orionvault.viewmodel.Route
+import com.cuboidestudio.orionvault.viewmodel.SecuritySettingsViewModel
 import com.cuboidestudio.orionvault.viewmodel.SyncSettingsViewModel
 import com.cuboidestudio.orionvault.viewmodel.UnlockViewModel
 import com.cuboidestudio.orionvault.viewmodel.VaultViewModel
@@ -104,7 +106,8 @@ fun App(container: AppContainer) {
                                     Route.AccountAuth
                                 }
                             )
-                        }
+                        },
+                        onOpenSecurity = { rootViewModel.navigateTo(Route.SecuritySettings) }
                     )
                 }
 
@@ -123,6 +126,14 @@ fun App(container: AppContainer) {
                         viewModel = vm,
                         onBack = { rootViewModel.navigateTo(Route.Vault) },
                         onLoggedOut = { rootViewModel.navigateTo(Route.Vault) }
+                    )
+                }
+
+                Route.SecuritySettings -> {
+                    val vm = remember { SecuritySettingsViewModel(container) }
+                    SecuritySettingsScreen(
+                        viewModel = vm,
+                        onBack = { rootViewModel.navigateTo(Route.Vault) }
                     )
                 }
 
@@ -164,6 +175,7 @@ private val Route.depth: Int
         Route.Vault -> 1
         Route.AccountAuth -> 2
         Route.SyncSettings -> 2
+        Route.SecuritySettings -> 2
         is Route.EditItem -> 2
         is Route.EditFolder -> 2
     }

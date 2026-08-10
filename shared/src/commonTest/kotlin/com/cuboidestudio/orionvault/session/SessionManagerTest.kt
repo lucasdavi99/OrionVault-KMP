@@ -34,6 +34,13 @@ private class FakeVaultRepository : VaultRepository {
         return true
     }
 
+    override suspend fun unlockWithKey(key: ByteArray): Boolean {
+        unlocked = true
+        return true
+    }
+
+    override fun currentSessionKeyOrNull(): ByteArray? = if (unlocked) ByteArray(0) else null
+
     override fun lock() {
         locked = true
         unlocked = false

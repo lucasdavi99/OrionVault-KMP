@@ -4,8 +4,10 @@ import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.cuboidestudio.orionvault.crypto.SecretKeyGenerator
 import com.cuboidestudio.orionvault.crypto.ensureLibsodiumInitialized
 import com.cuboidestudio.orionvault.domain.model.VaultConstants
+import com.cuboidestudio.orionvault.crypto.CipherBlob
 import com.cuboidestudio.orionvault.storage.db.OrionVaultDatabase
 import com.cuboidestudio.orionvault.domain.model.SyncState
+import com.cuboidestudio.orionvault.storage.secure.BiometricUnlockChoice
 import com.cuboidestudio.orionvault.storage.secure.SecureCredentialStore
 import com.cuboidestudio.orionvault.storage.secure.StoredAuthSession
 import com.cuboidestudio.orionvault.storage.secure.StoredVaultSecrets
@@ -21,12 +23,19 @@ import kotlin.test.assertTrue
 private class InMemorySecureCredentialStore : SecureCredentialStore {
     private var stored: StoredVaultSecrets? = null
     private var authSession: StoredAuthSession? = null
+    private var biometricChoice = BiometricUnlockChoice.UNDECIDED
+    private var biometricBlob: CipherBlob? = null
     override suspend fun saveVaultSecrets(secrets: StoredVaultSecrets) { stored = secrets }
     override suspend fun loadVaultSecrets(): StoredVaultSecrets? = stored
     override suspend fun clear() { stored = null }
     override suspend fun saveAuthSession(session: StoredAuthSession) { authSession = session }
     override suspend fun loadAuthSession(): StoredAuthSession? = authSession
     override suspend fun clearAuthSession() { authSession = null }
+    override suspend fun saveBiometricChoice(choice: BiometricUnlockChoice) { biometricChoice = choice }
+    override suspend fun loadBiometricChoice(): BiometricUnlockChoice = biometricChoice
+    override suspend fun saveBiometricKeystoreBlob(blob: CipherBlob) { biometricBlob = blob }
+    override suspend fun loadBiometricKeystoreBlob(): CipherBlob? = biometricBlob
+    override suspend fun clearBiometricKeystoreBlob() { biometricBlob = null }
 }
 
 class VaultRepositoryImplTest {

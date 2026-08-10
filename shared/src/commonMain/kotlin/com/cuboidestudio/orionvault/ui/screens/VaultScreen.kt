@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.CreateNewFolder
+import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MoreVert
@@ -91,7 +92,8 @@ fun VaultScreen(
     viewModel: VaultViewModel,
     onOpenItem: (folderId: String?, itemId: String?) -> Unit,
     onOpenFolder: (parentId: String?, folderId: String?) -> Unit,
-    onOpenAccount: () -> Unit
+    onOpenAccount: () -> Unit,
+    onOpenSecurity: () -> Unit
 ) {
     val unfiledItems by viewModel.unfiledItems.collectAsState()
     val breadcrumb by viewModel.breadcrumb.collectAsState()
@@ -130,6 +132,9 @@ fun VaultScreen(
                                 imageVector = if (searchVisible) Icons.Filled.Close else Icons.Filled.Search,
                                 contentDescription = if (searchVisible) "Fechar busca" else "Buscar"
                             )
+                        }
+                        IconButton(onClick = onOpenSecurity) {
+                            Icon(Icons.Filled.Fingerprint, contentDescription = "Segurança")
                         }
                         IconButton(onClick = onOpenAccount) {
                             Icon(Icons.Filled.CloudSync, contentDescription = "Conta e sincronização")

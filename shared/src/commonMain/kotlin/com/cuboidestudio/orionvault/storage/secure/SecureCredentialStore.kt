@@ -34,6 +34,9 @@ class StoredAuthSession(
     val email: String
 )
 
+/** Decisão do usuário sobre o desbloqueio biométrico secundário — ver [BiometricAuthenticator][com.cuboidestudio.orionvault.security.BiometricAuthenticator]. */
+enum class BiometricUnlockChoice { UNDECIDED, ENABLED, DECLINED }
+
 interface SecureCredentialStore {
     suspend fun saveVaultSecrets(secrets: StoredVaultSecrets)
     suspend fun loadVaultSecrets(): StoredVaultSecrets?
@@ -42,6 +45,16 @@ interface SecureCredentialStore {
     suspend fun saveAuthSession(session: StoredAuthSession)
     suspend fun loadAuthSession(): StoredAuthSession?
     suspend fun clearAuthSession()
+
+    suspend fun saveBiometricChoice(choice: BiometricUnlockChoice)
+    suspend fun loadBiometricChoice(): BiometricUnlockChoice
+
+    /** [blob] cifra a chave do cofre; só é decifrável através do Keystore vinculado à autenticação do aparelho. */
+    suspend fun saveBiometricKeystoreBlob(blob: CipherBlob)
+    suspend fun loadBiometricKeystoreBlob(): CipherBlob?
+
+    /** Remove só o blob cifrado (chave do Keystore desativada/invalidada) — não mexe em [BiometricUnlockChoice]. */
+    suspend fun clearBiometricKeystoreBlob()
 }
 
 /** Contexto opaco necessário por algumas plataformas (ex.: `Context` no Android) para acessar armazenamento seguro. */

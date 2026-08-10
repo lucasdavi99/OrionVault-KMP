@@ -1,6 +1,7 @@
 package com.cuboidestudio.orionvault.storage.secure
 
 import android.content.Context
+import com.cuboidestudio.orionvault.crypto.CipherBlob
 
 /**
  * TODO: placeholder usando `SharedPreferences` comum — migrar para Android Keystore
@@ -36,8 +37,32 @@ class AndroidSecureCredentialStore(private val context: Context) : SecureCredent
         prefs.edit().remove(AUTH_KEY).apply()
     }
 
+    override suspend fun saveBiometricChoice(choice: BiometricUnlockChoice) {
+        prefs.edit().putString(BIOMETRIC_CHOICE_KEY, choice.name).apply()
+    }
+
+    override suspend fun loadBiometricChoice(): BiometricUnlockChoice =
+        prefs.getString(BIOMETRIC_CHOICE_KEY, null)?.let {
+            runCatching { BiometricUnlockChoice.valueOf(it) }.getOrNull()
+        } ?: BiometricUnlockChoice.UNDECIDED
+
+    override suspend fun saveBiometricKeystoreBlob(blob: CipherBlob) {
+        prefs.edit().putString(BIOMETRIC_BLOB_KEY, blob.toStorageString()).apply()
+    }
+
+    override suspend fun loadBiometricKeystoreBlob(): CipherBlob? {
+        val raw = prefs.getString(BIOMETRIC_BLOB_KEY, null) ?: return null
+        return runCatching { CipherBlob.fromStorageString(raw) }.getOrNull()
+    }
+
+    override suspend fun clearBiometricKeystoreBlob() {
+        prefs.edit().remove(BIOMETRIC_BLOB_KEY).apply()
+    }
+
     companion object {
         private const val KEY = "vault_secrets"
         private const val AUTH_KEY = "cloud_auth_session"
+        private const val BIOMETRIC_CHOICE_KEY = "biometric_unlock_choice"
+        private const val BIOMETRIC_BLOB_KEY = "biometric_unlock_blob"
     }
 }

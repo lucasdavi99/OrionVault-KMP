@@ -93,6 +93,18 @@ class VaultRepositoryImpl(
         return true
     }
 
+    override suspend fun unlockWithKey(key: ByteArray): Boolean {
+        ensureLibsodiumInitialized()
+        val stored = secureStore.loadVaultSecrets() ?: return false
+        if (!VaultCanary.verify(stored.canary, key)) return false
+        // Cópia própria: quem chama (ex.: desbloqueio biométrico) costuma zerar o array recebido
+        // logo depois, por higiene de memória — sessionKey não pode compartilhar essa referência.
+        sessionKey = key.copyOf()
+        return true
+    }
+
+    override fun currentSessionKeyOrNull(): ByteArray? = sessionKey
+
     override fun lock() {
         sessionKey?.fill(0)
         sessionKey = null

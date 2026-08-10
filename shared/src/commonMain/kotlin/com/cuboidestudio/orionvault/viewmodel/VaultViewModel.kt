@@ -5,10 +5,12 @@ import androidx.lifecycle.viewModelScope
 import com.cuboidestudio.orionvault.AppContainer
 import com.cuboidestudio.orionvault.domain.model.VaultFolder
 import com.cuboidestudio.orionvault.domain.model.VaultItem
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /** Navegação em árvore de pastas + listagem de itens da pasta atual. */
 class VaultViewModel(private val container: AppContainer) : ViewModel() {
@@ -54,11 +56,20 @@ class VaultViewModel(private val container: AppContainer) : ViewModel() {
         onActivity()
         viewModelScope.launch {
             val folderId = currentFolderId
-            _subfolders.value = container.vaultRepository.listFolders(folderId)
             val unlocked = container.vaultRepository.isUnlocked()
-            // Contas avulsas (folderId nulo) só aparecem na aba "Contas" — a raiz de "Pastas" mostra só pastas.
-            _items.value = if (unlocked && folderId != null) container.vaultRepository.listItems(folderId) else emptyList()
-            _unfiledItems.value = if (unlocked) container.vaultRepository.listItems(null) else emptyList()
+            // Leitura do banco + decriptação (custosa para listas grandes) roda fora da main thread
+            // para não travar a UI enquanto a tela de contas carrega.
+            val (subfolders, items, unfiledItems) = withContext(Dispatchers.Default) {
+                Triple(
+                    container.vaultRepository.listFolders(folderId),
+                    // Contas avulsas (folderId nulo) só aparecem na aba "Contas" — a raiz de "Pastas" mostra só pastas.
+                    if (unlocked && folderId != null) container.vaultRepository.listItems(folderId) else emptyList(),
+                    if (unlocked) container.vaultRepository.listItems(null) else emptyList()
+                )
+            }
+            _subfolders.value = subfolders
+            _items.value = items
+            _unfiledItems.value = unfiledItems
         }
     }
 

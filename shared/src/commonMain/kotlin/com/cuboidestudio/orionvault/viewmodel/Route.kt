@@ -13,4 +13,7 @@ sealed interface Route {
 
     /** Status do sync, botão de sincronizar agora, logout e lista de conflitos. */
     data object SyncSettings : Route
+
+    /** Liga/desliga o desbloqueio secundário por biometria/PIN do aparelho. */
+    data object SecuritySettings : Route
 }

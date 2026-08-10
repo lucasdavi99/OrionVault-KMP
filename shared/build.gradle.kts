@@ -115,6 +115,8 @@ kotlin {
             implementation(libs.compose.uiTooling)
             implementation(libs.sqldelight.android.driver)
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.androidx.biometric)
+            implementation(libs.androidx.fragment.ktx)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
