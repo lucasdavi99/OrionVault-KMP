@@ -1,8 +1,13 @@
 package com.cuboidestudio.orionvault
 
+
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
@@ -10,6 +15,7 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import com.cuboidestudio.orionvault.security.PlatformBiometricContext
 import com.cuboidestudio.orionvault.storage.secure.PlatformContext
+import com.cuboidestudio.orionvault.ui.theme.OrionVaultTheme
 import kotlinx.coroutines.flow.filter
 
 fun main() = application {
@@ -21,6 +27,7 @@ fun main() = application {
         onCloseRequest = ::exitApplication,
         state = windowState,
         title = "OrionVault",
+        undecorated = true,
     ) {
         // Abaixo disso o layout de duas colunas do editor deixa de fazer sentido.
         window.minimumSize = java.awt.Dimension(480, 620)
@@ -32,6 +39,14 @@ fun main() = application {
                 .filter { it }
                 .collect { container.syncEngine.onAppForegrounded() }
         }
-        App(container)
+
+        OrionVaultTheme {
+            Column(Modifier.fillMaxSize()) {
+                CustomTitleBar(windowState, onCloseRequest = ::exitApplication)
+                Box(Modifier.weight(1f)) {
+                    App(container)
+                }
+            }
+        }
     }
 }
