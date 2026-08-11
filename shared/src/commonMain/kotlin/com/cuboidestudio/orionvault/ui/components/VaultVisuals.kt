@@ -95,10 +95,10 @@ internal fun PasswordStrengthMeter(
     val clamped = score.coerceIn(0f, 1f)
 
     val targetColor = when {
-        clamped < 0.30f -> ext.strengthWeak
-        clamped < 0.55f -> ext.strengthFair
-        clamped < 0.80f -> ext.strengthGood
-        else -> ext.strengthStrong
+        clamped < 0.35f -> ext.strengthWeak
+        clamped < 0.6f -> ext.strengthFair
+        clamped < 1f -> ext.strengthGood
+        else -> ext.strengthPerfect
     }
     val color by animateColorAsState(targetColor, OrionMotion.tweenMedium(), label = "strengthColor")
     val animatedScore by animateFloatAsState(clamped, OrionMotion.tweenMedium(), label = "strengthScore")

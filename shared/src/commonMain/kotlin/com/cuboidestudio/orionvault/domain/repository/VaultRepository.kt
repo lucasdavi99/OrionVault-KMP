@@ -65,6 +65,12 @@ interface VaultRepository {
     /** folderId nulo lista/cria contas avulsas (sem pasta). */
     suspend fun listItems(folderId: String?): List<VaultItem>
 
+    /**
+     * Todos os itens do cofre, de todas as pastas mais os avulsos — usado pela checagem de reuso
+     * de senha no editor de itens. Nunca sai do dispositivo.
+     */
+    suspend fun listAllItems(): List<VaultItem>
+
     suspend fun createItem(
         folderId: String?,
         title: String,

@@ -31,6 +31,9 @@ private fun biometricChoiceFile(): File =
 private fun biometricBlobFile(): File =
     File(secureStorageDir(), if (isWindows) "biometric_blob.dpapi" else "biometric_blob.enc")
 
+private fun breachCheckFile(): File =
+    File(secureStorageDir(), if (isWindows) "breach_check.dpapi" else "breach_check.enc")
+
 /**
  * Implementação real para Windows via DPAPI (JNA `Crypt32Util`): os bytes só podem ser
  * descriptografados pelo mesmo usuário/máquina que os protegeu (design doc seção 5).
@@ -84,6 +87,13 @@ class JvmSecureCredentialStore : SecureCredentialStore {
     override suspend fun clearBiometricKeystoreBlob() {
         biometricBlobFile().delete()
     }
+
+    override suspend fun saveBreachCheckEnabled(enabled: Boolean) {
+        writeProtected(breachCheckFile(), enabled.toString())
+    }
+
+    override suspend fun loadBreachCheckEnabled(): Boolean =
+        readProtected(breachCheckFile())?.toBooleanStrictOrNull() ?: false
 
     private fun writeProtected(file: File, content: String) {
         val serialized = content.toByteArray(StandardCharsets.UTF_8)

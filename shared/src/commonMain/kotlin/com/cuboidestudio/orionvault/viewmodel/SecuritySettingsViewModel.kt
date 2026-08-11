@@ -19,9 +19,22 @@ class SecuritySettingsViewModel(private val container: AppContainer) : ViewModel
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
+    private val _breachCheckEnabled = MutableStateFlow(false)
+    val breachCheckEnabled: StateFlow<Boolean> = _breachCheckEnabled.asStateFlow()
+
     init {
         viewModelScope.launch {
             _choice.value = container.secureCredentialStore.loadBiometricChoice()
+        }
+        viewModelScope.launch {
+            _breachCheckEnabled.value = container.secureCredentialStore.loadBreachCheckEnabled()
+        }
+    }
+
+    fun setBreachCheckEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            container.secureCredentialStore.saveBreachCheckEnabled(enabled)
+            _breachCheckEnabled.value = enabled
         }
     }
 

@@ -4,6 +4,7 @@ import com.cuboidestudio.orionvault.domain.model.VaultConstants
 import com.cuboidestudio.orionvault.domain.repository.VaultRepository
 import com.cuboidestudio.orionvault.domain.repository.VaultRepositoryImpl
 import com.cuboidestudio.orionvault.network.AuthApiClient
+import com.cuboidestudio.orionvault.network.BreachCheckApiClient
 import com.cuboidestudio.orionvault.network.SyncApiClient
 import com.cuboidestudio.orionvault.network.createHttpClient
 import com.cuboidestudio.orionvault.security.PlatformBiometricContext
@@ -42,6 +43,8 @@ class AppContainer(platformContext: PlatformContext, platformBiometricContext: P
     // `internal` (mesmo tratamento de `secureCredentialStore`): a OnboardingViewModel precisa
     // buscar os parâmetros de KDF da conta antes de existir um cofre local para restaurar.
     internal val syncApiClient = SyncApiClient(httpClient, json, accountSessionManager)
+
+    internal val breachCheckApiClient = BreachCheckApiClient(httpClient)
 
     /**
      * Indireção mutável para quebrar a dependência circular entre repositório e motor de sync:

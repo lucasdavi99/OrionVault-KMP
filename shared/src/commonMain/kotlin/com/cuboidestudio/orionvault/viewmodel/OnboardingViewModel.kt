@@ -141,7 +141,17 @@ class OnboardingViewModel(private val container: AppContainer) : ViewModel() {
             // Sem essa checagem, uma Master Password ou Secret Key erradas não dão erro nenhum
             // aqui - só produzem um cofre local "válido" cuja chave não bate com a do dispositivo
             // original, e os itens baixados pelo sync sumiriam silenciosamente da lista depois.
-            val sample = runCatching { container.syncApiClient.fetchSampleItem(userId) }.getOrNull()
+            //
+            // fetchSampleItem só devolve null de verdade quando a conta não tem nenhum item
+            // sincronizado ainda - uma falha de rede precisa continuar sendo um erro explícito
+            // aqui, e não ser tratada como "nada para verificar" (senão a restauração termina
+            // com uma chave nunca conferida).
+            val sampleResult = runCatching { container.syncApiClient.fetchSampleItem(userId) }
+            val sample = sampleResult.getOrElse {
+                _errorMessage.value = it.message ?: "Falha ao verificar a chave com o servidor. Tente novamente."
+                _isLoading.value = false
+                return@launch
+            }
             if (sample != null) {
                 val matches = container.vaultRepository.verifyKeyAgainstCiphertext(
                     masterPassword, secretKey, params, sample.passwordCipher

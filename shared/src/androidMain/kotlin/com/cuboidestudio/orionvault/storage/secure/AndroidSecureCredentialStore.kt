@@ -59,10 +59,18 @@ class AndroidSecureCredentialStore(private val context: Context) : SecureCredent
         prefs.edit().remove(BIOMETRIC_BLOB_KEY).apply()
     }
 
+    override suspend fun saveBreachCheckEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean(BREACH_CHECK_KEY, enabled).apply()
+    }
+
+    override suspend fun loadBreachCheckEnabled(): Boolean =
+        prefs.getBoolean(BREACH_CHECK_KEY, false)
+
     companion object {
         private const val KEY = "vault_secrets"
         private const val AUTH_KEY = "cloud_auth_session"
         private const val BIOMETRIC_CHOICE_KEY = "biometric_unlock_choice"
         private const val BIOMETRIC_BLOB_KEY = "biometric_unlock_blob"
+        private const val BREACH_CHECK_KEY = "breach_check_enabled"
     }
 }

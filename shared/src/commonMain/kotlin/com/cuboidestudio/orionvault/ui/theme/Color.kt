@@ -90,7 +90,8 @@ data class OrionExtendedColors(
     val strengthWeak: Color,
     val strengthFair: Color,
     val strengthGood: Color,
-    val strengthStrong: Color,
+    /** Reservada exclusivamente para senha com score 100% (força máxima). */
+    val strengthPerfect: Color,
     /** Gradientes determinísticos (início, fim) para avatares de item, escolhidos por hash do título. */
     val avatarGradients: List<Pair<Color, Color>>
 )
@@ -105,8 +106,8 @@ internal val OrionDarkExtendedColors = OrionExtendedColors(
     ambientEmerald = Color(0x0F10B981), // esmeralda 6%
     strengthWeak = Color(0xFFF87171),
     strengthFair = Color(0xFFFBBF24),
-    strengthGood = Color(0xFFA78BFA),
-    strengthStrong = Color(0xFF34D399),
+    strengthGood = Color(0xFF34D399),
+    strengthPerfect = Color(0xFF8B5CF6),
     avatarGradients = listOf(
         Color(0xFF8B5CF6) to Color(0xFF6366F1), // violeta → indigo
         Color(0xFF06B6D4) to Color(0xFF3B82F6), // ciano → azul

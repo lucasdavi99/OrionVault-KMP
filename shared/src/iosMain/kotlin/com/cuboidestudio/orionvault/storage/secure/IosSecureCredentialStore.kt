@@ -60,10 +60,18 @@ class IosSecureCredentialStore : SecureCredentialStore {
         defaults.removeObjectForKey(BIOMETRIC_BLOB_KEY)
     }
 
+    override suspend fun saveBreachCheckEnabled(enabled: Boolean) {
+        defaults.setBool(enabled, BREACH_CHECK_KEY)
+    }
+
+    override suspend fun loadBreachCheckEnabled(): Boolean =
+        defaults.boolForKey(BREACH_CHECK_KEY)
+
     companion object {
         private const val KEY = "vault_secrets"
         private const val AUTH_KEY = "cloud_auth_session"
         private const val BIOMETRIC_CHOICE_KEY = "biometric_unlock_choice"
         private const val BIOMETRIC_BLOB_KEY = "biometric_unlock_blob"
+        private const val BREACH_CHECK_KEY = "breach_check_enabled"
     }
 }

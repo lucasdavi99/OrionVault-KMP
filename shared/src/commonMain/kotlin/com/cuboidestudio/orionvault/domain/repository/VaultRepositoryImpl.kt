@@ -190,13 +190,32 @@ class VaultRepositoryImpl(
         // Um item com tag AEAD inválida (corrompido, adulterado, ou cifrado sob uma chave
         // diferente da sessão atual) não deve derrubar a listagem inteira - o cofre precisa
         // continuar navegável para que o usuário veja e trate o item afetado isoladamente.
-        return database.vaultQueries.selectItemsByFolder(folderId).executeAsList().mapNotNull {
+        val rows = database.vaultQueries.selectItemsByFolder(folderId).executeAsList()
+        val items = rows.mapNotNull {
             try {
                 toVaultItem(it, key)
             } catch (e: AeadCorrupedOrTamperedDataException) {
                 null
             }
         }
+        // Isso nunca deveria acontecer em uso normal - se acontecer para todos os itens de uma
+        // vez, é sinal forte de que a sessionKey não é a mesma usada para cifrar esses dados
+        // (ex.: restauração de cofre com chave não verificada). Sem esse log, o sintoma vira
+        // "sumiram as contas" sem nenhuma pista de por quê.
+        val droppedCount = rows.size - items.size
+        if (droppedCount > 0) {
+            println(
+                "VaultRepositoryImpl.listItems: $droppedCount de ${rows.size} item(ns) " +
+                    "descartado(s) por falha de descriptografia (folderId=$folderId) - a chave de " +
+                    "sessão provavelmente não corresponde à chave usada para cifrar esses dados."
+            )
+        }
+        return items
+    }
+
+    override suspend fun listAllItems(): List<VaultItem> {
+        val folders = listAllFolders()
+        return listItems(null) + folders.flatMap { listItems(it.id) }
     }
 
     private fun toVaultItem(row: Item, key: ByteArray): VaultItem = VaultItem(

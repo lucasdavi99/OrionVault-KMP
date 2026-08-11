@@ -54,6 +54,7 @@ private class FakeVaultRepository : VaultRepository {
     override suspend fun renameFolder(id: String, newName: String) {}
     override suspend fun deleteFolder(id: String) {}
     override suspend fun listItems(folderId: String?): List<VaultItem> = emptyList()
+    override suspend fun listAllItems(): List<VaultItem> = emptyList()
     override suspend fun createItem(
         folderId: String?,
         title: String,

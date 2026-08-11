@@ -25,6 +25,7 @@ private class InMemorySecureCredentialStore : SecureCredentialStore {
     private var authSession: StoredAuthSession? = null
     private var biometricChoice = BiometricUnlockChoice.UNDECIDED
     private var biometricBlob: CipherBlob? = null
+    private var breachCheckEnabled = false
     override suspend fun saveVaultSecrets(secrets: StoredVaultSecrets) { stored = secrets }
     override suspend fun loadVaultSecrets(): StoredVaultSecrets? = stored
     override suspend fun clear() { stored = null }
@@ -36,6 +37,8 @@ private class InMemorySecureCredentialStore : SecureCredentialStore {
     override suspend fun saveBiometricKeystoreBlob(blob: CipherBlob) { biometricBlob = blob }
     override suspend fun loadBiometricKeystoreBlob(): CipherBlob? = biometricBlob
     override suspend fun clearBiometricKeystoreBlob() { biometricBlob = null }
+    override suspend fun saveBreachCheckEnabled(enabled: Boolean) { breachCheckEnabled = enabled }
+    override suspend fun loadBreachCheckEnabled(): Boolean = breachCheckEnabled
 }
 
 class VaultRepositoryImplTest {

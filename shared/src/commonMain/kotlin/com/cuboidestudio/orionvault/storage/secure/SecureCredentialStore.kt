@@ -55,6 +55,10 @@ interface SecureCredentialStore {
 
     /** Remove só o blob cifrado (chave do Keystore desativada/invalidada) — não mexe em [BiometricUnlockChoice]. */
     suspend fun clearBiometricKeystoreBlob()
+
+    /** Opt-in da checagem de vazamento (HIBP) no editor de itens — desligado por padrão. */
+    suspend fun saveBreachCheckEnabled(enabled: Boolean)
+    suspend fun loadBreachCheckEnabled(): Boolean
 }
 
 /** Contexto opaco necessário por algumas plataformas (ex.: `Context` no Android) para acessar armazenamento seguro. */

@@ -5,10 +5,16 @@ import androidx.lifecycle.viewModelScope
 import com.cuboidestudio.orionvault.AppContainer
 import com.cuboidestudio.orionvault.domain.model.VaultFolder
 import com.cuboidestudio.orionvault.domain.model.VaultItem
+import com.cuboidestudio.orionvault.domain.util.BreachStatus
+import com.cuboidestudio.orionvault.domain.util.PasswordReuseChecker
+import com.cuboidestudio.orionvault.domain.util.Sha1
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 sealed interface ItemEditorStep {
     /** Etapa prévia, exibida somente na criação, onde o usuário escolhe quais campos opcionais incluir. */
@@ -47,6 +53,18 @@ class ItemEditorViewModel(
     private val _selectedFolderId = MutableStateFlow(folderId)
     val selectedFolderId: StateFlow<String?> = _selectedFolderId.asStateFlow()
 
+    /** Senhas de todos os outros itens do cofre (a própria [itemId] fica de fora), para a checagem de reuso. */
+    private val _otherPasswords = MutableStateFlow<List<String>>(emptyList())
+
+    private val _reuseCount = MutableStateFlow(0)
+    val reuseCount: StateFlow<Int> = _reuseCount.asStateFlow()
+
+    private val _breachStatus = MutableStateFlow<BreachStatus>(BreachStatus.Idle)
+    val breachStatus: StateFlow<BreachStatus> = _breachStatus.asStateFlow()
+
+    private var breachCheckSettingEnabled = false
+    private var breachCheckJob: Job? = null
+
     init {
         viewModelScope.launch {
             _folders.value = container.vaultRepository.listAllFolders()
@@ -61,6 +79,39 @@ class ItemEditorViewModel(
                     _selectedFolderId.value = loaded.folderId
                 }
             }
+        }
+        viewModelScope.launch {
+            _otherPasswords.value = container.vaultRepository.listAllItems()
+                .filter { it.id != itemId }
+                .map { it.password }
+        }
+        viewModelScope.launch {
+            breachCheckSettingEnabled = container.secureCredentialStore.loadBreachCheckEnabled()
+        }
+    }
+
+    /** Chamado a cada mudança do campo de senha no editor — nunca bloqueia `save()`. */
+    fun onPasswordChanged(password: String) {
+        _reuseCount.value = PasswordReuseChecker.countUsages(password, _otherPasswords.value)
+
+        breachCheckJob?.cancel()
+        if (!breachCheckSettingEnabled || password.isBlank()) {
+            _breachStatus.value = BreachStatus.Idle
+            return
+        }
+        breachCheckJob = viewModelScope.launch {
+            _breachStatus.value = BreachStatus.Checking
+            delay(500)
+            val digest = Sha1.hex(password)
+            val prefix = digest.take(5)
+            val suffix = digest.substring(5)
+            val result = withTimeoutOrNull(6_000) {
+                container.breachCheckApiClient.checkRange(prefix)
+            }
+            _breachStatus.value = result?.getOrNull()
+                ?.firstOrNull { it.suffix == suffix }
+                ?.let { BreachStatus.Breached(it.count) }
+                ?: if (result?.isSuccess == true) BreachStatus.NotBreached else BreachStatus.CheckFailed
         }
     }
 

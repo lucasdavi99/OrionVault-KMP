@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -37,6 +38,7 @@ fun SecuritySettingsScreen(viewModel: SecuritySettingsViewModel, onBack: () -> U
     val choice by viewModel.choice.collectAsState()
     val error by viewModel.errorMessage.collectAsState()
     val available = viewModel.availability == BiometricAvailability.AVAILABLE
+    val breachCheckEnabled by viewModel.breachCheckEnabled.collectAsState()
 
     OrionScaffold(
         topBar = { OrionTopBar(title = "Segurança", onBack = onBack, showDivider = false) }
@@ -105,6 +107,44 @@ fun SecuritySettingsScreen(viewModel: SecuritySettingsViewModel, onBack: () -> U
                             text = error!!,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+
+                OrionSurface(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(OrionSpacing.sm)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Shield,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(end = OrionSpacing.xxs)
+                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Verificar vazamentos (HIBP)",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(Modifier.height(OrionSpacing.xxs))
+                            Text(
+                                text = "Ao editar uma senha, avisa se ela já apareceu em vazamentos " +
+                                    "públicos conhecidos (Have I Been Pwned). Só um trecho de 5 " +
+                                    "caracteres do hash da senha é enviado para o serviço — a senha " +
+                                    "em si nunca sai do aparelho.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Switch(
+                            checked = breachCheckEnabled,
+                            onCheckedChange = viewModel::setBreachCheckEnabled,
+                            colors = SwitchDefaults.colors(
+                                checkedTrackColor = MaterialTheme.colorScheme.primary
+                            )
                         )
                     }
                 }

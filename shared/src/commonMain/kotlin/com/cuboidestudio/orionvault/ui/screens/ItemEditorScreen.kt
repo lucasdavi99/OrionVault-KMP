@@ -65,6 +65,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.cuboidestudio.orionvault.domain.model.VaultFolder
+import com.cuboidestudio.orionvault.domain.util.BreachStatus
 import com.cuboidestudio.orionvault.domain.util.PasswordGenerator
 import com.cuboidestudio.orionvault.ui.components.ItemAvatar
 import com.cuboidestudio.orionvault.ui.components.OrionButton
@@ -213,6 +214,8 @@ private fun ItemFormStep(viewModel: ItemEditorViewModel, onDone: () -> Unit) {
     val includeEmail by viewModel.includeEmail.collectAsState()
     val folders by viewModel.folders.collectAsState()
     val selectedFolderId by viewModel.selectedFolderId.collectAsState()
+    val reuseCount by viewModel.reuseCount.collectAsState()
+    val breachStatus by viewModel.breachStatus.collectAsState()
 
     var title by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
@@ -240,6 +243,10 @@ private fun ItemFormStep(viewModel: ItemEditorViewModel, onDone: () -> Unit) {
 
     LaunchedEffect(saved) {
         if (saved) onDone()
+    }
+
+    LaunchedEffect(password) {
+        viewModel.onPasswordChanged(password)
     }
 
     // O caminho de cada pasta é calculado uma vez por lista, não a cada chamada: antes o
@@ -413,6 +420,27 @@ private fun ItemFormStep(viewModel: ItemEditorViewModel, onDone: () -> Unit) {
                     Column {
                         Spacer(Modifier.height(OrionSpacing.sm))
                         PasswordStrengthMeter(score = score, label = label)
+
+                        if (reuseCount > 0) {
+                            Spacer(Modifier.height(OrionSpacing.xs))
+                            SecurityBadge(
+                                text = if (reuseCount == 1) {
+                                    "Senha reutilizada em 1 outra conta"
+                                } else {
+                                    "Senha reutilizada em $reuseCount outras contas"
+                                },
+                                level = SecurityLevel.Warning
+                            )
+                        }
+
+                        val breach = breachStatus
+                        if (breach is BreachStatus.Breached) {
+                            Spacer(Modifier.height(OrionSpacing.xs))
+                            SecurityBadge(
+                                text = "Encontrada em vazamentos conhecidos (${breach.count}x)",
+                                level = SecurityLevel.Danger
+                            )
+                        }
                     }
                 }
             }
