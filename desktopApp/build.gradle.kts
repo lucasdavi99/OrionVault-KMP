@@ -25,7 +25,7 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             modules("java.sql", "java.naming", "java.desktop", "java.instrument", "jdk.unsupported")
             packageName = "OrionVault"
-            packageVersion = "0.1.0"
+            packageVersion = "0.1.1"
 
             val iconsDir = File(projectDir, "src/main/resources/icons")
             macOS {
