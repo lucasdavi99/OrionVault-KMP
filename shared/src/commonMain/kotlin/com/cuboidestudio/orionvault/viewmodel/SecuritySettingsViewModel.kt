@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.cuboidestudio.orionvault.AppContainer
 import com.cuboidestudio.orionvault.security.BiometricAvailability
 import com.cuboidestudio.orionvault.storage.secure.BiometricUnlockChoice
+import com.cuboidestudio.orionvault.crypto.SecretKeyGenerator
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,12 +23,20 @@ class SecuritySettingsViewModel(private val container: AppContainer) : ViewModel
     private val _breachCheckEnabled = MutableStateFlow(false)
     val breachCheckEnabled: StateFlow<Boolean> = _breachCheckEnabled.asStateFlow()
 
+    private val _secretKeyDisplay = MutableStateFlow<String?>(null)
+    val secretKeyDisplay: StateFlow<String?> = _secretKeyDisplay.asStateFlow()
+
     init {
         viewModelScope.launch {
             _choice.value = container.secureCredentialStore.loadBiometricChoice()
         }
         viewModelScope.launch {
             _breachCheckEnabled.value = container.secureCredentialStore.loadBreachCheckEnabled()
+        }
+        viewModelScope.launch {
+            container.secureCredentialStore.loadVaultSecrets()?.let { secrets ->
+                _secretKeyDisplay.value = SecretKeyGenerator.formatForDisplay(secrets.secretKey)
+            }
         }
     }
 

@@ -11,18 +11,30 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Fingerprint
+import androidx.compose.material.icons.filled.Key
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.cuboidestudio.orionvault.security.BiometricAvailability
 import com.cuboidestudio.orionvault.storage.secure.BiometricUnlockChoice
@@ -39,6 +51,9 @@ fun SecuritySettingsScreen(viewModel: SecuritySettingsViewModel, onBack: () -> U
     val error by viewModel.errorMessage.collectAsState()
     val available = viewModel.availability == BiometricAvailability.AVAILABLE
     val breachCheckEnabled by viewModel.breachCheckEnabled.collectAsState()
+    val secretKeyDisplay by viewModel.secretKeyDisplay.collectAsState()
+    var secretKeyVisible by remember { mutableStateOf(false) }
+    val clipboardManager = LocalClipboardManager.current
 
     OrionScaffold(
         topBar = { OrionTopBar(title = "Segurança", onBack = onBack, showDivider = false) }
@@ -54,6 +69,74 @@ fun SecuritySettingsScreen(viewModel: SecuritySettingsViewModel, onBack: () -> U
                     .padding(horizontal = OrionSpacing.screenH, vertical = OrionSpacing.lg),
                 verticalArrangement = Arrangement.spacedBy(OrionSpacing.md)
             ) {
+                if (secretKeyDisplay != null) {
+                    OrionSurface(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(OrionSpacing.sm)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Key,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(end = OrionSpacing.xxs)
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Secret Key (Chave de Emergência)",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Spacer(Modifier.height(OrionSpacing.xxs))
+                                Text(
+                                    text = "Necessária para restaurar o cofre em outro dispositivo.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        Spacer(Modifier.height(OrionSpacing.sm))
+
+                        if (secretKeyVisible) {
+                            Text(
+                                text = secretKeyDisplay!!,
+                                style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        } else {
+                            Text(
+                                text = "••••-••••-••••-••••",
+                                style = MaterialTheme.typography.titleLarge.copy(fontFamily = FontFamily.Monospace),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
+                        Spacer(Modifier.height(OrionSpacing.sm))
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(OrionSpacing.xs)
+                        ) {
+                            OutlinedButton(
+                                onClick = { secretKeyVisible = !secretKeyVisible }
+                            ) {
+                                Icon(
+                                    imageVector = if (secretKeyVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                                    contentDescription = null,
+                                    modifier = Modifier.padding(end = 4.dp)
+                                )
+                                Text(if (secretKeyVisible) "Ocultar" else "Revelar")
+                            }
+                            IconButton(
+                                onClick = { clipboardManager.setText(AnnotatedString(secretKeyDisplay!!)) }
+                            ) {
+                                Icon(Icons.Filled.ContentCopy, contentDescription = "Copiar Secret Key")
+                            }
+                        }
+                    }
+                }
+
                 OrionSurface(modifier = Modifier.fillMaxWidth()) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
